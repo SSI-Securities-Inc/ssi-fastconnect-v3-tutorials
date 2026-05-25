@@ -116,8 +116,13 @@ Trước khi vận hành bất kỳ mẫu kiểm thử nào, bạn cần điền
 ## Cách chạy mẫu Python
 
 ### Yêu cầu hệ thống
-* Python phiên bản `3.8` trở lên.
-* Đã cài đặt thư viện `ssi_sdk` (tham khảo hướng dẫn cài đặt từ SSI).
+* Python phiên bản `3.9` trở lên.
+
+### Cài đặt SDK
+Cài đặt thư viện `ssi-sdk` chính thức từ PyPI:
+```bash
+pip install ssi-sdk
+```
 
 ### Các bước thực hiện
 1. Di chuyển vào thư mục Python:
