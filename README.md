@@ -13,7 +13,6 @@ Tài liệu hướng dẫn và mã nguồn mẫu tích hợp hệ thống giao d
 - [Tính năng cốt lõi](#tính-năng-cốt-lõi)
 - [Hướng dẫn cấu hình](#hướng-dẫn-cấu-hình)
 - [Cách chạy mẫu Python](#cách-chạy-mẫu-python)
-<!-- - [Cách chạy mẫu Go](#cách-chạy-mẫu-go) -->
 - [Luồng hoạt động chính](#luồng-hoạt-động-chính)
 - [Lưu ý quan trọng](#lưu-ý-quan-trọng)
 
