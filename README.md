@@ -3,15 +3,15 @@
 Tài liệu hướng dẫn và mã nguồn mẫu tích hợp hệ thống giao dịch chứng khoán của SSI (Saigon Securities Incorporation) qua **SSI FastConnect API**.
 
 ### Ngôn ngữ hỗ trợ
+- [x] **Go** (bao gồm các mẫu từ Sample 01 đến 12)
 - [x] **Python** (bao gồm cả phiên bản đồng bộ - synchronous và bất đồng bộ - asynchronous)
-- [ ] **Go** (đang phát triển)
 - [ ] **Các ngôn ngữ khác** (sẽ được cập nhật thêm trong tương lai)
 
 ## Mục lục
 - [Giới thiệu](#giới-thiệu)
-- [Cấu trúc dự án](#cấu-trúc-dự-án)
 - [Tính năng cốt lõi](#tính-năng-cốt-lõi)
 - [Hướng dẫn cấu hình](#hướng-dẫn-cấu-hình)
+- [Cách chạy mẫu Go](#cách-chạy-mẫu-go)
 - [Cách chạy mẫu Python](#cách-chạy-mẫu-python)
 - [Luồng hoạt động chính](#luồng-hoạt-động-chính)
 - [Lưu ý quan trọng](#lưu-ý-quan-trọng)
@@ -28,25 +28,6 @@ Bộ mã nguồn này cung cấp các ví dụ thực tế giúp nhà phát tri�
 
 ---
 
-## Cấu trúc dự án
-Dự án được phân chia rõ ràng theo từng ngôn ngữ và nền tảng:
-
-```
-├── README.md               # Hướng dẫn chung cho toàn bộ dự án
-└── python/                 # Các mã mẫu viết bằng ngôn ngữ Python
-    ├── auth_helper.py      # Module bổ trợ quản lý và cache token
-    └── sample_*.py         # Các mã nguồn mẫu (gồm bản sync và async)
-```
-
-<!-- Cấu trúc thư mục Go (Sẽ kích hoạt khi sẵn sàng)
-├── go/                     # Các mã mẫu viết bằng ngôn ngữ Go
-│   ├── README.md           # Hướng dẫn chạy nhanh cho thư mục Go
-│   ├── go.mod              # Khai báo Go module và các dependency liên quan
-│   ├── go.sum              # Checksum bảo mật của Go dependencies
-│   └── sample_*.go         # Các mã nguồn mẫu từ Sample 01 đến 12
--->
-
----
 
 ## Tính năng cốt lõi
 
@@ -63,37 +44,20 @@ Tránh việc gọi lại luồng xác thực (`authenticate`) và OTP ở mỗi
 
 Dưới đây là chi tiết các mẫu kiểm thử tương ứng theo từng ngôn ngữ:
 
-| Stt | Tính năng | Tệp nguồn Python | Mô tả chi tiết |
-|---|---|---|---|
-| **01** | Xác thực & Lấy Token | `sample_01_auth.py`<br>`sample_01_auth_async.py` | Thiết lập kết nối ban đầu, lấy token và ghi nhận tài khoản khả dụng. |
-| **02** | Chỉ số thị trường | `sample_02_index_list.py`<br>`sample_02_index_list_async.py` | Lấy danh sách chỉ số (VN-Index, HNX-Index...) và chi tiết từng chỉ số theo sàn. |
-| **03** | Dữ liệu nến (OHLC) | `sample_03_ohlc.py`<br>`sample_03_ohlc_async.py` | Lấy mảng dữ liệu giá (Mở, Cao, Thấp, Đóng, Khối lượng) theo các khung thời gian linh hoạt (1m, 5m, 1h, 1d...). |
-| **04** | Danh sách cổ phiếu | `sample_04_securities.py`<br>`sample_04_securities_async.py` | Truy vấn thông tin chi tiết của một mã hoặc danh sách mã theo sàn giao dịch. |
-| **05** | Số dư tài khoản | `sample_05_balance.py`<br>`sample_05_balance_async.py` | Kiểm tra số dư khả dụng, tiền ký quỹ cho tiểu khoản thường (equity) hoặc phái sinh (derivative). |
-| **06** | Đặt lệnh giới hạn | `sample_06_limit_order.py`<br>`sample_06_limit_order_async.py` | Gửi lệnh mua hoặc bán cổ phiếu với mức giá giới hạn (LO) mong muốn. |
-| **07** | Đặt lệnh thị trường | `sample_07_market_order.py`<br>`sample_07_market_order_async.py` | Gửi lệnh mua hoặc bán theo giá thị trường (MP/MTL...) nhằm ưu tiên khớp ngay lập tức. |
-| **08** | Trạng thái lệnh | `sample_08_order_status.py`<br>`sample_08_order_status_async.py` | Kiểm tra lịch sử đặt lệnh trong ngày hoặc quá khứ của một tài khoản cụ thể. |
-| **09** | Hủy lệnh | `sample_09_cancel_order.py`<br>`sample_09_cancel_order_async.py` | Hủy phần khối lượng chưa khớp của lệnh giới hạn đang ở trạng thái chờ khớp. |
-| **10** | WebSocket Thị trường | `sample_10_websocket_data.py`<br>`sample_10_websocket_data_async.py` | Nhận luồng dữ liệu thời gian thực (giá khớp, thông tin bảng giá, room khối ngoại) bằng kết nối WebSocket. |
-| **11** | WebSocket Giao dịch | `sample_11_websocket_trading.py`<br>`sample_11_websocket_trading_async.py` | Lắng nghe các thay đổi tức thời về trạng thái khớp lệnh và danh mục tài sản của người dùng. |
-| **12** | Chiến thuật MA Cross | `sample_12_ma_cross_auto_trade.py`<br>`sample_12_ma_cross_auto_trade_async.py` | Mô phỏng hệ thống tự động hóa hoàn chỉnh: Tính toán MA5/MA10, tạo tín hiệu giao dịch, kiểm tra điều kiện rủi ro, đặt lệnh và theo dõi. |
-
-<!-- Danh sách các mẫu đầy đủ bao gồm cả Go (Sẽ kích hoạt khi sẵn sàng)
-| Stt | Tính năng | Tệp nguồn Python | Tệp nguồn Go | Mô tả chi tiết |
+| Stt | Tính năng | Tệp nguồn Go | Tệp nguồn Python | Mô tả chi tiết |
 |---|---|---|---|---|
-| **01** | Xác thực & Lấy Token | `sample_01_auth.py`<br>`sample_01_auth_async.py` | `sample_01_auth.go` | Thiết lập kết nối ban đầu, lấy token và ghi nhận tài khoản khả dụng. |
-| **02** | Chỉ số thị trường | `sample_02_index_list.py`<br>`sample_02_index_list_async.py` | `sample_02_index_list.go` | Lấy danh sách chỉ số (VN-Index, HNX-Index...) và chi tiết từng chỉ số theo sàn. |
-| **03** | Dữ liệu nến (OHLC) | `sample_03_ohlc.py`<br>`sample_03_ohlc_async.py` | `sample_03_ohlc.go` | Lấy mảng dữ liệu giá (Mở, Cao, Thấp, Đóng, Khối lượng) theo các khung thời gian linh hoạt (1m, 5m, 1h, 1d...). |
-| **04** | Danh sách cổ phiếu | `sample_04_securities.py`<br>`sample_04_securities_async.py` | `sample_04_securities.go` | Truy vấn thông tin chi tiết của một mã hoặc danh sách mã theo sàn giao dịch. |
-| **05** | Số dư tài khoản | `sample_05_balance.py`<br>`sample_05_balance_async.py` | `sample_05_balance.go` | Kiểm tra số dư khả dụng, tiền ký quỹ cho tiểu khoản thường (equity) hoặc phái sinh (derivative). |
-| **06** | Đặt lệnh giới hạn | `sample_06_limit_order.py`<br>`sample_06_limit_order_async.py` | `sample_06_limit_order.go` | Gửi lệnh mua hoặc bán cổ phiếu với mức giá giới hạn (LO) mong muốn. |
-| **07** | Đặt lệnh thị trường | `sample_07_market_order.py`<br>`sample_07_market_order_async.py` | `sample_07_market_order.go` | Gửi lệnh mua hoặc bán theo giá thị trường (MP/MTL...) nhằm ưu tiên khớp ngay lập tức. |
-| **08** | Trạng thái lệnh | `sample_08_order_status.py`<br>`sample_08_order_status_async.py` | `sample_08_order_status.go` | Kiểm tra lịch sử đặt lệnh trong ngày hoặc quá khứ của một tài khoản cụ thể. |
-| **09** | Hủy lệnh | `sample_09_cancel_order.py`<br>`sample_09_cancel_order_async.py` | `sample_09_cancel_order.go` | Hủy phần khối lượng chưa khớp của lệnh giới hạn đang ở trạng thái chờ khớp. |
-| **10** | WebSocket Thị trường | `sample_10_websocket_data.py`<br>`sample_10_websocket_data_async.py` | `sample_10_websocket_data.go` | Nhận luồng dữ liệu thời gian thực (giá khớp, thông tin bảng giá, room khối ngoại) bằng kết nối WebSocket. |
-| **11** | WebSocket Giao dịch | `sample_11_websocket_trading.py`<br>`sample_11_websocket_trading_async.py` | `sample_11_websocket_trading.go` | Lắng nghe các thay đổi tức thời về trạng thái khớp lệnh và danh mục tài sản của người dùng. |
-| **12** | Chiến thuật MA Cross | `sample_12_ma_cross_auto_trade.py`<br>`sample_12_ma_cross_auto_trade_async.py` | `sample_12_ma_cross_auto_trade.go` | Mô phỏng hệ thống tự động hóa hoàn chỉnh: Tính toán MA5/MA10, tạo tín hiệu giao dịch, kiểm tra điều kiện rủi ro, đặt lệnh và theo dõi. |
--->
+| **01** | Xác thực & Lấy Token | `sample_01_auth.go` | `sample_01_auth.py`<br>`sample_01_auth_async.py` | Thiết lập kết nối ban đầu, lấy token và ghi nhận tài khoản khả dụng. |
+| **02** | Chỉ số thị trường | `sample_02_index_list.go` | `sample_02_index_list.py`<br>`sample_02_index_list_async.py` | Lấy danh sách chỉ số (VN-Index, HNX-Index...) và chi tiết từng chỉ số theo sàn. |
+| **03** | Dữ liệu nến (OHLC) | `sample_03_ohlc.go` | `sample_03_ohlc.py`<br>`sample_03_ohlc_async.py` | Lấy mảng dữ liệu giá (Mở, Cao, Thấp, Đóng, Khối lượng) theo các khung thời gian linh hoạt (1m, 5m, 1h, 1d...). |
+| **04** | Danh sách cổ phiếu | `sample_04_securities.go` | `sample_04_securities.py`<br>`sample_04_securities_async.py` | Truy vấn thông tin chi tiết của một mã hoặc danh sách mã theo sàn giao dịch. |
+| **05** | Số dư tài khoản | `sample_05_balance.go` | `sample_05_balance.py`<br>`sample_05_balance_async.py` | Kiểm tra số dư khả dụng, tiền ký quỹ cho tiểu khoản thường (equity) hoặc phái sinh (derivative). |
+| **06** | Đặt lệnh giới hạn | `sample_06_limit_order.go` | `sample_06_limit_order.py`<br>`sample_06_limit_order_async.py` | Gửi lệnh mua hoặc bán cổ phiếu với mức giá giới hạn (LO) mong muốn. |
+| **07** | Đặt lệnh thị trường | `sample_07_market_order.go` | `sample_07_market_order.py`<br>`sample_07_market_order_async.py` | Gửi lệnh mua hoặc bán theo giá thị trường (MP/MTL...) nhằm ưu tiên khớp ngay lập tức. |
+| **08** | Trạng thái lệnh | `sample_08_order_status.go` | `sample_08_order_status.py`<br>`sample_08_order_status_async.py` | Kiểm tra lịch sử đặt lệnh trong ngày hoặc quá khứ của một tài khoản cụ thể. |
+| **09** | Hủy lệnh | `sample_09_cancel_order.go` | `sample_09_cancel_order.py`<br>`sample_09_cancel_order_async.py` | Hủy phần khối lượng chưa khớp của lệnh giới hạn đang ở trạng thái chờ khớp. |
+| **10** | WebSocket Thị trường | `sample_10_websocket_data.go` | `sample_10_websocket_data.py`<br>`sample_10_websocket_data_async.py` | Nhận luồng dữ liệu thời gian thực (giá khớp, thông tin bảng giá, room khối ngoại) bằng kết nối WebSocket. |
+| **11** | WebSocket Giao dịch | `sample_11_websocket_trading.go` | `sample_11_websocket_trading.py`<br>`sample_11_websocket_trading_async.py` | Lắng nghe các thay đổi tức thời về trạng thái khớp lệnh và danh mục tài sản của người dùng. |
+| **12** | Chiến thuật MA Cross | `sample_12_ma_cross_auto_trade.go` | `sample_12_ma_cross_auto_trade.py`<br>`sample_12_ma_cross_auto_trade_async.py` | Mô phỏng hệ thống tự động hóa hoàn chỉnh: Tính toán MA5/MA10, tạo tín hiệu giao dịch, kiểm tra điều kiện rủi ro, đặt lệnh và theo dõi. |
 
 ---
 
@@ -138,25 +102,20 @@ pip install ssi-sdk
    python sample_01_auth_async.py
    ```
 
-<!-- Hướng dẫn chạy mẫu Go (Sẽ kích hoạt khi sẵn sàng)
 ---
 
 ## Cách chạy mẫu Go
 
 ### Yêu cầu hệ thống
 * Go phiên bản `1.22` trở lên.
-* Module `gitlab.ssi.com.vn/ssi-public-solutions/fastconnect-go` khả dụng cục bộ hoặc thông qua cấu hình thay thế đường dẫn trong `go.mod`.
+* Module `github.com/SSI-Securities-Inc/ssi-sdk-go/v3` (được thiết lập liên kết cục bộ tới thư mục SDK song song `../ssi-sdk-go`).
 
 ### Các bước thực hiện
-1. Di chuyển vào thư mục Go:
-   ```bash
-   cd go
-   ```
-2. Thực hiện tải về các thư viện phụ thuộc:
+1. Thực hiện tải về các thư viện phụ thuộc và thiết lập module:
    ```bash
    go mod tidy
    ```
-3. Chạy tệp mẫu mong muốn:
+2. Chạy thử nghiệm các tệp mẫu mong muốn trực tiếp tại thư mục hiện tại:
    ```bash
    # Ví dụ chạy Sample 01 xác thực tài khoản
    go run sample_01_auth.go
@@ -164,7 +123,6 @@ pip install ssi-sdk
    # Ví dụ chạy Sample 12 chiến thuật giao dịch tự động
    go run sample_12_ma_cross_auto_trade.go
    ```
--->
 
 ---
 
