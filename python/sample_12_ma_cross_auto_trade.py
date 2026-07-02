@@ -141,7 +141,7 @@ def detect_cross(bars: list[Bar], fast: int, slow: int) -> str | None:
 # ---------------------------------------------------------------------------
 
 with Auth(config) as auth:
-    ensure_auth(auth, otp="222222")
+    ensure_auth(auth, otp="<OTP>")
 
     # ===== Bước 1: Seed lịch sử 5m =====
     builder = BarBuilder(BAR_SECONDS)

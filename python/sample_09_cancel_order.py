@@ -34,7 +34,7 @@ CANCELLABLE_STATUSES = {
 }
 
 with Auth(config) as auth:
-    ensure_auth(auth, otp="222222")
+    ensure_auth(auth, otp="<OTP>")
 
     with Trading(auth) as trading:
         # --- Bước 1: Lấy sổ lệnh, tìm lệnh đang mở ---

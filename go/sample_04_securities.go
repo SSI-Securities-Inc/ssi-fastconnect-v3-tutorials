@@ -28,7 +28,6 @@ func main() {
 	config.APIKey = "<API_KEY>"
 	config.APISecret = "<API_SECRET>"
 	config.PrivateKey = "<PRIVATE_KEY_CONTENT>"
-	config.LogLevel = "DEBUG"
 
 	auth := ssi.NewAuth(config)
 	defer auth.Close()
@@ -106,25 +105,32 @@ func main() {
 	fmt.Printf("  Lot size    : %d\n", info.LotSize)
 	fmt.Printf("  ICB Code    : %s\n", info.ICBCode)
 	fmt.Printf("  Listed Shares: %d\n", info.ListedShares)
+
+	// --- Response Summary ---
+	fmt.Println("\n[Response] hose_count|hnx_count|vn30_count|symbol|lot_size|listed_shares")
+	fmt.Printf("%d|%d|%d|%s|%d|%d\n", len(hoseSecurities), len(hnxSecurities), len(vn30Securities), info.Symbol, info.LotSize, info.ListedShares)
 }
 
 // ── Token cache helper ──────────────────────────────────────────────────────
 
+const sharedTokenFile = "../shared_token.json"
 const tokenCacheFile = "token_cache.json"
 
 func loadToken() *auth.Token {
-	data, err := os.ReadFile(tokenCacheFile)
-	if err != nil {
-		return nil
+	for _, file := range []string{sharedTokenFile, tokenCacheFile} {
+		data, err := os.ReadFile(file)
+		if err != nil {
+			continue
+		}
+		var token auth.Token
+		if err := json.Unmarshal(data, &token); err != nil {
+			continue
+		}
+		if token.AccessToken != "" {
+			return &token
+		}
 	}
-	var token auth.Token
-	if err := json.Unmarshal(data, &token); err != nil {
-		return nil
-	}
-	if token.AccessToken == "" {
-		return nil
-	}
-	return &token
+	return nil
 }
 
 func saveToken(token *auth.Token) {

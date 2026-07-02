@@ -52,7 +52,7 @@ def on_heartbeat(msg: HeartbeatMessage):
 
 
 with Auth(config) as auth:
-    ensure_auth(auth, otp="222222")
+    ensure_auth(auth, otp="<OTP>")
 
     with Stream(auth) as stream:
         # --- Bước 1: Mở kết nối WebSocket ---

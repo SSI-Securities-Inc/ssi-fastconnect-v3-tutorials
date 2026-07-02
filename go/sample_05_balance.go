@@ -22,19 +22,18 @@ import (
 	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/ssi"
 )
 
-const accountNo = "6666661" // VD: "1234561"
+const accountNo = "<ACCOUNT_NO>" // VD: "1234561"
 
 func main() {
 	config := ssi.NewConfig("<CLIENT_ID>")
 	config.APIKey = "<API_KEY>"
 	config.APISecret = "<API_SECRET>"
 	config.PrivateKey = "<PRIVATE_KEY_CONTENT>"
-	config.LogLevel = "DEBUG"
 
 	auth := ssi.NewAuth(config)
 	defer auth.Close()
 
-	ensureAuth(auth, "025535")
+	ensureAuth(auth, "<OTP>")
 
 	t := ssi.NewTrading(auth)
 
@@ -89,25 +88,37 @@ func main() {
 		fmt.Printf("  %-10s | SL: %d | Bán được: %d | Giá vốn: %.0f\n",
 			pos.Symbol, pos.Quantity, pos.SellableQuantity, pos.CostPrice)
 	}
+
+	// --- Response Summary ---
+	fmt.Println("\n[Response] accounts|avail_cash|max_buy_qty|max_sell_qty|positions")
+	fmt.Printf("%d|%.0f|%d|%d|%d\n", len(accounts), balance.AvailableCash, maxBS.MaxBuyQuantity, maxBS.MaxSellQuantity, len(positions))
+	if len(positions) > 0 {
+		p := positions[0]
+		fmt.Println("[Response:first_pos] symbol|quantity|sellable|cost_price")
+		fmt.Printf("%s|%d|%d|%.0f\n", p.Symbol, p.Quantity, p.SellableQuantity, p.CostPrice)
+	}
 }
 
 // ── Token cache helper ──────────────────────────────────────────────────────
 
+const sharedTokenFile = "../shared_token.json"
 const tokenCacheFile = "token_cache.json"
 
 func loadToken() *auth.Token {
-	data, err := os.ReadFile(tokenCacheFile)
-	if err != nil {
-		return nil
+	for _, file := range []string{sharedTokenFile, tokenCacheFile} {
+		data, err := os.ReadFile(file)
+		if err != nil {
+			continue
+		}
+		var token auth.Token
+		if err := json.Unmarshal(data, &token); err != nil {
+			continue
+		}
+		if token.AccessToken != "" {
+			return &token
+		}
 	}
-	var token auth.Token
-	if err := json.Unmarshal(data, &token); err != nil {
-		return nil
-	}
-	if token.AccessToken == "" {
-		return nil
-	}
-	return &token
+	return nil
 }
 
 func saveToken(token *auth.Token) {

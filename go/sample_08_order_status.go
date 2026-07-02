@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/auth"
+	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/portfolio"
 	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/ssi"
 	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/trading"
 )
@@ -41,11 +42,10 @@ func main() {
 	config.APISecret = "<API_SECRET>"
 	config.PrivateKey = "<PRIVATE_KEY_CONTENT>"
 	config.LogLevel = "DEBUG"
-
 	auth := ssi.NewAuth(config)
 	defer auth.Close()
 
-	ensureAuth(auth, "222222")
+	ensureAuth(auth, "<OTP>")
 
 	t := ssi.NewTrading(auth)
 
@@ -63,6 +63,8 @@ func main() {
 	fmt.Println("\n--- Bắt đầu theo dõi trạng thái lệnh ---")
 	maxPolls := 10
 	pollInterval := 3 * time.Second
+	var lastOrder *portfolio.Order
+	finished := false
 
 	for i := 1; i <= maxPolls; i++ {
 		orders, err := t.Portfolio.GetTodayOrders(accountNo)
@@ -77,6 +79,7 @@ func main() {
 		}
 
 		latest := orders[len(orders)-1]
+		lastOrder = &latest
 		remaining := latest.Quantity - latest.FilledQuantity - latest.CancelQuantity
 
 		fmt.Printf("  Poll %d: OrderID=%s | Status=%s | Khớp=%d/%d | Còn lại=%d\n",
@@ -89,32 +92,44 @@ func main() {
 				fmt.Printf("  Đã khớp: %d cổ phiếu @ trung bình %.0f\n",
 					latest.FilledQuantity, latest.AvgPrice)
 			}
-			return
+			finished = true
+			break
 		}
 
 		time.Sleep(pollInterval)
 	}
 
-	fmt.Printf("\nHết %d lần poll, lệnh vẫn đang mở.\n", maxPolls)
+	if !finished {
+		fmt.Printf("\nHết %d lần poll, lệnh vẫn đang mở.\n", maxPolls)
+	}
+
+	// --- Response Summary ---
+	if lastOrder != nil {
+		fmt.Printf("\n[Response] place_status|final_status|filled_qty|total_qty\n")
+		fmt.Printf("%s|%s|%d|%d\n", result.Status, lastOrder.Status, lastOrder.FilledQuantity, lastOrder.Quantity)
+	}
 }
 
 // ── Token cache helper ──────────────────────────────────────────────────────
 
+const sharedTokenFile = "../shared_token.json"
 const tokenCacheFile = "token_cache.json"
 
 func loadToken() *auth.Token {
-	data, err := os.ReadFile(tokenCacheFile)
-	if err != nil {
-		return nil
+	for _, file := range []string{sharedTokenFile, tokenCacheFile} {
+		data, err := os.ReadFile(file)
+		if err != nil {
+			continue
+		}
+		var token auth.Token
+		if err := json.Unmarshal(data, &token); err != nil {
+			continue
+		}
+		if token.AccessToken != "" {
+			return &token
+		}
 	}
-	var token auth.Token
-	if err := json.Unmarshal(data, &token); err != nil {
-		return nil
-	}
-	if token.AccessToken == "" {
-		return nil
-	}
-	return &token
+	return nil
 }
 
 func saveToken(token *auth.Token) {

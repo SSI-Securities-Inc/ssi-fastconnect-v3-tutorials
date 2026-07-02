@@ -28,7 +28,6 @@ func main() {
 	config.APIKey = "<API_KEY>"
 	config.APISecret = "<API_SECRET>"
 	config.PrivateKey = "<PRIVATE_KEY_CONTENT>"
-	config.LogLevel = "DEBUG"
 
 	auth := ssi.NewAuth(config)
 	defer auth.Close()
@@ -63,29 +62,41 @@ func main() {
 	fmt.Println("\n--- VN-Index Summary ---")
 	summary, err := data.MarketData.GetIndexSummary("VNINDEX")
 	if err != nil {
-		log.Fatal(err)
+		fmt.Printf("  (Không có dữ liệu summary — có thể ngoài giờ giao dịch)\n")
+	} else {
+		fmt.Printf("  Giá trị Index    : %f\n", summary.IndexValue)
+		fmt.Printf("  Thay đổi         : %+.2f\n", summary.IndexChange)
 	}
-	fmt.Printf("  Giá trị Index    : %f\n", summary.IndexValue)
-	fmt.Printf("  Thay đổi         : %+.2f\n", summary.IndexChange)
+
+	// --- Response Summary ---
+	fmt.Println("\n[Response] total_indexes|hose_indexes|first_index")
+	first := ""
+	if len(allIndexes) > 0 {
+		first = allIndexes[0].Index
+	}
+	fmt.Printf("%d|%d|%s\n", len(allIndexes), len(hoseIndexes), first)
 }
 
 // ── Token cache helper ──────────────────────────────────────────────────────
 
+const sharedTokenFile = "../shared_token.json"
 const tokenCacheFile = "token_cache.json"
 
 func loadToken() *auth.Token {
-	data, err := os.ReadFile(tokenCacheFile)
-	if err != nil {
-		return nil
+	for _, file := range []string{sharedTokenFile, tokenCacheFile} {
+		data, err := os.ReadFile(file)
+		if err != nil {
+			continue
+		}
+		var token auth.Token
+		if err := json.Unmarshal(data, &token); err != nil {
+			continue
+		}
+		if token.AccessToken != "" {
+			return &token
+		}
 	}
-	var token auth.Token
-	if err := json.Unmarshal(data, &token); err != nil {
-		return nil
-	}
-	if token.AccessToken == "" {
-		return nil
-	}
-	return &token
+	return nil
 }
 
 func saveToken(token *auth.Token) {

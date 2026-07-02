@@ -37,7 +37,7 @@ CANCELLABLE_STATUSES = {
 
 async def main():
     async with AsyncAuth(config) as auth:
-        await ensure_auth_async(auth, otp="222222")
+        await ensure_auth_async(auth, otp="<OTP>")
 
         async with AsyncTrading(auth) as trading:
             # --- Bước 1: Lấy sổ lệnh, tìm lệnh đang mở ---

@@ -32,11 +32,10 @@ func main() {
 	config.APISecret = "<API_SECRET>"
 	config.PrivateKey = "<PRIVATE_KEY_CONTENT>"
 	config.LogLevel = "DEBUG"
-
 	auth := ssi.NewAuth(config)
 	defer auth.Close()
 
-	ensureAuth(auth, "222222")
+	ensureAuth(auth, "<OTP>")
 
 	s := ssi.NewStream(auth)
 	defer s.Disconnect()
@@ -69,7 +68,7 @@ func main() {
 
 	// --- Bước 3: Subscribe trạng thái lệnh real-time ---
 	fmt.Println("Subscribing trạng thái lệnh...")
-	s.Streaming.SubscribeOrderStatus("6666661", nil)
+	s.Streaming.SubscribeOrderStatus(accountNo, nil)
 
 	// --- Bước 4: Subscribe danh mục tài khoản real-time ---
 	// fmt.Println("Subscribing danh mục tài khoản...")
@@ -83,21 +82,24 @@ func main() {
 
 // ── Token cache helper ──────────────────────────────────────────────────────
 
+const sharedTokenFile = "../shared_token.json"
 const tokenCacheFile = "token_cache.json"
 
 func loadToken() *auth.Token {
-	data, err := os.ReadFile(tokenCacheFile)
-	if err != nil {
-		return nil
+	for _, file := range []string{sharedTokenFile, tokenCacheFile} {
+		data, err := os.ReadFile(file)
+		if err != nil {
+			continue
+		}
+		var token auth.Token
+		if err := json.Unmarshal(data, &token); err != nil {
+			continue
+		}
+		if token.AccessToken != "" {
+			return &token
+		}
 	}
-	var token auth.Token
-	if err := json.Unmarshal(data, &token); err != nil {
-		return nil
-	}
-	if token.AccessToken == "" {
-		return nil
-	}
-	return &token
+	return nil
 }
 
 func saveToken(token *auth.Token) {

@@ -26,7 +26,7 @@ config = Config(
 ACCOUNT_NO = "<ACCOUNT_NO>"
 
 with Auth(config) as auth:
-    ensure_auth(auth, otp="222222")
+    ensure_auth(auth, otp="<OTP>")
 
     with Trading(auth) as trading:
         # --- Bước 1: Kiểm tra sức mua/bán ở giá thị trường ---

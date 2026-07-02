@@ -1,0 +1,4 @@
+github.com/SSI-Securities-Inc/ssi-sdk-go/v3 v3.0.0 h1:TQNCo1uWreGCBje/AAX2YfTzpWYhdj0cHLL8a/5A8fw=
+github.com/SSI-Securities-Inc/ssi-sdk-go/v3 v3.0.0/go.mod h1:GTryGWYBfKpPU1IQI8YKvCaj1/YpR0CTPuDZTKw5YE8=
+github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aNNg=
+github.com/gorilla/websocket v1.5.3/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=

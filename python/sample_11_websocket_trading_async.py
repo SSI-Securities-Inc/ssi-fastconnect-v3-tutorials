@@ -55,7 +55,7 @@ def on_heartbeat(msg: HeartbeatMessage):
 
 async def main():
     async with AsyncAuth(config) as auth:
-        await ensure_auth_async(auth, otp="222222")
+        await ensure_auth_async(auth, otp="<OTP>")
 
         async with AsyncStream(auth) as stream:
             # --- Bước 1: Mở kết nối WebSocket ---

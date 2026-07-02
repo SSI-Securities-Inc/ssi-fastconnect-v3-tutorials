@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	maAccountNo  = "1234561"
+	maAccountNo  = "<ACCOUNT_NO>"
 	maSymbol     = "SSI"
 	maFast       = 5
 	maSlow       = 10
@@ -100,12 +100,11 @@ func main() {
 	config.APIKey = "<API_KEY>"
 	config.APISecret = "<API_SECRET>"
 	config.PrivateKey = "<PRIVATE_KEY_CONTENT>"
-	config.LogLevel = "DEBUG"
 
 	auth := ssi.NewAuth(config)
 	defer auth.Close()
 
-	ensureAuth(auth, "222222")
+	ensureAuth(auth, "<OTP>")
 
 	data := ssi.NewData(auth)
 	t := ssi.NewTrading(auth)
@@ -113,7 +112,7 @@ func main() {
 	// ===== Bước 1: Lấy dữ liệu OHLC =====
 	fmt.Printf("--- Lấy dữ liệu OHLC %s (1 ngày) ---\n", maSymbol)
 	bars, err := data.MarketData.GetOHLC1DayHistorical(
-		maSymbol, "2026/01/01", "2026/04/22", 1, 100,
+		maSymbol, "2026/01/01 00:00:00", "2026/04/22 23:59:59", 1, 100,
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -255,21 +254,24 @@ func main() {
 
 // ── Token cache helper ──────────────────────────────────────────────────────
 
+const sharedTokenFile = "../shared_token.json"
 const tokenCacheFile = "token_cache.json"
 
 func loadToken() *auth.Token {
-	data, err := os.ReadFile(tokenCacheFile)
-	if err != nil {
-		return nil
+	for _, file := range []string{sharedTokenFile, tokenCacheFile} {
+		data, err := os.ReadFile(file)
+		if err != nil {
+			continue
+		}
+		var token auth.Token
+		if err := json.Unmarshal(data, &token); err != nil {
+			continue
+		}
+		if token.AccessToken != "" {
+			return &token
+		}
 	}
-	var token auth.Token
-	if err := json.Unmarshal(data, &token); err != nil {
-		return nil
-	}
-	if token.AccessToken == "" {
-		return nil
-	}
-	return &token
+	return nil
 }
 
 func saveToken(token *auth.Token) {

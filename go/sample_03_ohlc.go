@@ -29,7 +29,6 @@ func main() {
 	config.APIKey = "<API_KEY>"
 	config.APISecret = "<API_SECRET>"
 	config.PrivateKey = "<PRIVATE_KEY_CONTENT>"
-	config.LogLevel = "DEBUG"
 
 	auth := ssi.NewAuth(config)
 	defer auth.Close()
@@ -104,25 +103,38 @@ func main() {
 		page++
 	}
 	fmt.Printf("\nTổng cộng %d nến 1 phút được tải.\n", totalBars)
+
+	// --- Response Summary ---
+	fmt.Println("\n[Response] daily_bars|hourly_bars|paging_1min")
+	fmt.Printf("%d|%d|%d\n", len(daily), len(hourly), totalBars)
+	if len(daily) > 0 {
+		c := daily[0]
+		fmt.Println("[Response:first_daily] date|open|high|low|close|volume")
+		fmt.Printf("%s|%g|%g|%g|%g|%d\n",
+			c.TradingDate, c.OpenPrice, c.HighPrice, c.LowPrice, c.ClosePrice, c.Volume)
+	}
 }
 
 // ── Token cache helper ──────────────────────────────────────────────────────
 
+const sharedTokenFile = "../shared_token.json"
 const tokenCacheFile = "token_cache.json"
 
 func loadToken() *auth.Token {
-	data, err := os.ReadFile(tokenCacheFile)
-	if err != nil {
-		return nil
+	for _, file := range []string{sharedTokenFile, tokenCacheFile} {
+		data, err := os.ReadFile(file)
+		if err != nil {
+			continue
+		}
+		var token auth.Token
+		if err := json.Unmarshal(data, &token); err != nil {
+			continue
+		}
+		if token.AccessToken != "" {
+			return &token
+		}
 	}
-	var token auth.Token
-	if err := json.Unmarshal(data, &token); err != nil {
-		return nil
-	}
-	if token.AccessToken == "" {
-		return nil
-	}
-	return &token
+	return nil
 }
 
 func saveToken(token *auth.Token) {
