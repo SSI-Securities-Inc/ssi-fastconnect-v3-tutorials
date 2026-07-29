@@ -11,21 +11,12 @@ Luồng:
   5. Nếu đủ điều kiện thì cho phép đi tiếp sang order flow
 """
 
-from ssi_sdk import Auth, Trading, Config
+from ssi_sdk import Auth, Trading
 from auth_helper import ensure_auth
-
-config = Config(
-    client_id="<CLIENT_ID>",
-    api_key="<API_KEY>",
-    api_secret="<API_SECRET>",
-    private_key=("<PRIVATE_KEY_CONTENT>"),
-    log_level="DEBUG",
-)
-
-ACCOUNT_NO = "<ACCOUNT_NO>"
+from config import config, ACCOUNT_NO, OTP
 
 with Auth(config) as auth:
-    ensure_auth(auth, otp="203081")
+    ensure_auth(auth, otp=OTP)
 
     with Trading(auth) as trading:
         # --- Bước 1: Lấy danh sách tài khoản ---
@@ -37,7 +28,7 @@ with Auth(config) as auth:
         # --- Bước 2: Lấy số dư tài khoản Equity ---
         print(f"\n--- Số dư tài khoản Equity: {ACCOUNT_NO} ---")
         balance = trading.portfolio.get_equity_balance(ACCOUNT_NO)
-        print(f"  Tiền mặt khả dụng  : {balance.available_cash:>15,.0f}")
+        print(f"  Tiền mặt khả dụng  : {balance.account_balance:>15,.0f}")
         print(f"  Tổng nợ            : {balance.total_debt:>15,.0f}")
         print(f"  Mua T0/T1/T2       : {balance.buy_t0:>12,.0f} / {balance.buy_t1:>12,.0f} / {balance.buy_t2:>12,.0f}")
         print(f"  Bán T0/T1/T2       : {balance.sell_t0:>12,.0f} / {balance.sell_t1:>12,.0f} / {balance.sell_t2:>12,.0f}")
@@ -47,19 +38,19 @@ with Auth(config) as auth:
         max_bs = trading.trading.get_max_buy_sell(ACCOUNT_NO, "SSI", 26000)
         print(f"  Max mua : {max_bs.max_buy_quantity:>10} cổ phiếu")
         print(f"  Max bán : {max_bs.max_sell_quantity:>10} cổ phiếu")
-        print(f"  Sức mua : {max_bs.purchase_power:>15,.0f}")
+        print(f"  Sức mua : {max_bs.purchase_power:>15}")
 
         # --- Bước 4: Logic kiểm tra trước khi đặt lệnh ---
         desired_quantity = 100
         desired_price = 26000
         required_amount = desired_quantity * desired_price
 
-        if balance.available_cash >= required_amount:
-            print(f"\n✓ Đủ điều kiện: cần {required_amount:,.0f}, có {balance.available_cash:,.0f}")
-            print("  → Cho phép đặt lệnh mua.")
+        if balance.account_balance >= required_amount:
+            print(f"\n✓ Đủ điều kiện: cần {required_amount:,.0f}, có {balance.account_balance:,.0f}")
+            print("  -> Cho phép đặt lệnh mua.")
         else:
-            print(f"\n✗ Không đủ: cần {required_amount:,.0f}, chỉ có {balance.available_cash:,.0f}")
-            print("  → Chặn đặt lệnh.")
+            print(f"\n✗ Không đủ: cần {required_amount:,.0f}, chỉ có {balance.account_balance:,.0f}")
+            print("  -> Chặn đặt lệnh.")
 
         # --- Bước 5: Xem vị thế hiện có ---
         print(f"\n--- Vị thế cổ phiếu ({ACCOUNT_NO}) ---")

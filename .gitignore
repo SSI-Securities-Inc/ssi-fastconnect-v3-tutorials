@@ -285,3 +285,5 @@ BUILD.md
 CLAUDE.md
 TEST.md
 tests/
+config.json
+token_cache.json

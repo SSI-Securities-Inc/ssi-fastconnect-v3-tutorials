@@ -95,16 +95,63 @@ func detectCross(closePrices []float64, fastPeriod, slowPeriod int) string {
 	return ""
 }
 
-func main() {
+type appConfig struct {
+	ClientID          string `json:"client_id"`
+	APIKey            string `json:"api_key"`
+	APISecret         string `json:"api_secret"`
+	PrivateKey        string `json:"private_key"`
+	OTP               string `json:"otp"`
+	EquityAccount     string `json:"equity_account"`
+	DerivativeAccount string `json:"derivative_account"`
+	LogLevel          string `json:"log_level"`
+}
+
+func loadConfig() (*ssi.Config, string, string) {
 	config := ssi.NewConfig("<CLIENT_ID>")
 	config.APIKey = "<API_KEY>"
 	config.APISecret = "<API_SECRET>"
 	config.PrivateKey = "<PRIVATE_KEY_CONTENT>"
+	accountNo := "<ACCOUNT_NO>"
+	otp := "<OTP>"
+
+	for _, path := range []string{"../config.json", "config.json"} {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			continue
+		}
+		var appCfg appConfig
+		if err := json.Unmarshal(data, &appCfg); err == nil {
+			if appCfg.ClientID != "" {
+				config.ClientID = appCfg.ClientID
+			}
+			if appCfg.APIKey != "" {
+				config.APIKey = appCfg.APIKey
+			}
+			if appCfg.APISecret != "" {
+				config.APISecret = appCfg.APISecret
+			}
+			if appCfg.PrivateKey != "" {
+				config.PrivateKey = appCfg.PrivateKey
+			}
+			if appCfg.EquityAccount != "" {
+				accountNo = appCfg.EquityAccount
+			}
+			if appCfg.OTP != "" {
+				otp = appCfg.OTP
+			}
+			break
+		}
+	}
+	return config, accountNo, otp
+}
+
+func main() {
+	config, accountNo, otp := loadConfig()
 
 	auth := ssi.NewAuth(config)
 	defer auth.Close()
 
-	ensureAuth(auth, "<OTP>")
+	ensureAuth(auth, otp)
 
 	data := ssi.NewData(auth)
 	t := ssi.NewTrading(auth)
@@ -249,7 +296,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("\n  Tiền mặt còn: %.0f VND\n", balance.AvailableCash)
+	fmt.Printf("\n  Tiền mặt còn: %.0f VND\n", balance.AccountBalance)
 }
 
 // ── Token cache helper ──────────────────────────────────────────────────────

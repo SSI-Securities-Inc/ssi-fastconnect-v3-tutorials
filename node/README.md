@@ -1,6 +1,6 @@
 # FastConnect Node.js Samples
 
-Bộ sample minh họa 12 kịch bản sử dụng **FastConnect Node.js SDK** (`@ssi.developer/ssi-sdk`).
+Bộ sample minh họa 13 kịch bản sử dụng **FastConnect Node.js SDK** (`@ssi.developer/ssi-sdk`).
 
 > Node.js là async sẵn nên mỗi kịch bản chỉ có **một file** (dùng top-level `await`), không tách sync/async như Python.
 
@@ -19,6 +19,7 @@ npm run sample:01      # Auth
 npm run sample:02      # Index list
 # ...
 npm run sample:12      # MA cross auto trade
+npm run sample:13      # Lệnh điều kiện FCO
 
 # Hoặc chạy trực tiếp
 node sample_01_auth.js
@@ -33,7 +34,7 @@ Tất cả sample import config từ `config.js` (thay vì nhúng lại trong t�
 |---|---|
 | `clientId` | `<CLIENT_ID>` |
 | `apiKey` / `apiSecret` | nhúng trong `config.js` |
-| `privateKey` | RSA key (Base64 XML) nhúng trong `config.js` — dùng ký lệnh (sample 05–09, 11, 12) |
+| `privateKey` | RSA key (Base64 XML) nhúng trong `config.js` — dùng ký lệnh (sample 05–09, 11–13) |
 | `ACCOUNT_NO` | `<ACCOUNT_NO>` |
 | `OTP` | `<OTP>` (chỉ dùng ở lần authenticate đầu tiên) |
 
@@ -66,8 +67,9 @@ Tất cả sample import config từ `config.js` (thay vì nhúng lại trong t�
 | 10 | `sample_10_websocket_data.js` | Giá real-time (Trade/Quote/Room) | – |
 | 11 | `sample_11_websocket_trading.js` | Trạng thái lệnh & danh mục real-time | ✔ |
 | 12 | `sample_12_ma_cross_auto_trade.js` | Tự động giao dịch theo tín hiệu MA5 cắt MA10 | ✔ |
+| 13 | `sample_13_fco_order.js` | Đặt & quản lý lệnh điều kiện FCO (GTD, Stop, Trailing Stop, OCO, Bull Bear) | ✔ |
 
-> Sample 05–09, 11, 12 ký lệnh bằng RSA (dùng `privateKey` trong `config.js`). Các sample WebSocket
+> Sample 05–09, 11–13 ký lệnh bằng RSA (dùng `privateKey` trong `config.js`). Các sample WebSocket
 > (10–12) tự dừng sau 5 phút hoặc khi nhấn `Ctrl+C`.
 
 ## API SDK dùng trong sample

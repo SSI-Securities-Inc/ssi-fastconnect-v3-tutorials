@@ -93,7 +93,7 @@ async def main():
                         )
 
                 print("\n--- Số dư sau hủy ---")
-                print(f"  Tiền mặt khả dụng: {balance.available_cash:>15,.0f}")
+                print(f"  Tiền mặt khả dụng: {balance.account_balance:>15,.0f}")
 
 
 asyncio.run(main())

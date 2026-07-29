@@ -26,7 +26,7 @@ static class Sample05Balance
         var balance = await trading.Portfolio.GetEquityBalanceAsync(SampleConfig.AccountNo);
         if (balance is not null)
         {
-            Console.WriteLine($"  Tien mat kha dung  : {balance.AvailableCash,15:N0}");
+            Console.WriteLine($"  Tien mat kha dung  : {balance.AccountBalance,15:N0}");
             Console.WriteLine($"  Tong no            : {balance.TotalDebt,15:N0}");
             Console.WriteLine($"  Mua T0/T1/T2       : {balance.BuyT0,12:N0} / {balance.BuyT1,12:N0} / {balance.BuyT2,12:N0}");
             Console.WriteLine($"  Ban T0/T1/T2       : {balance.SellT0,12:N0} / {balance.SellT1,12:N0} / {balance.SellT2,12:N0}");
@@ -44,14 +44,14 @@ static class Sample05Balance
         var desiredPrice = 26000.0;
         var requiredAmount = desiredQuantity * desiredPrice;
 
-        if (balance is not null && balance.AvailableCash >= requiredAmount)
+        if (balance is not null && balance.AccountBalance >= requiredAmount)
         {
-            Console.WriteLine($"\n  Du dieu kien: can {requiredAmount:N0}, co {balance.AvailableCash:N0}");
+            Console.WriteLine($"\n  Du dieu kien: can {requiredAmount:N0}, co {balance.AccountBalance:N0}");
             Console.WriteLine("  -> Cho phep dat lenh mua.");
         }
         else
         {
-            Console.WriteLine($"\n  Khong du: can {requiredAmount:N0}, chi co {balance?.AvailableCash:N0}");
+            Console.WriteLine($"\n  Khong du: can {requiredAmount:N0}, chi co {balance?.AccountBalance:N0}");
             Console.WriteLine("  -> Chan dat lenh.");
         }
 
@@ -67,7 +67,7 @@ static class Sample05Balance
 
         // --- Response Summary ---
         Console.WriteLine("\n[Response] accounts|avail_cash|max_buy_qty|max_sell_qty|positions");
-        Console.WriteLine($"{accounts.Count}|{balance?.AvailableCash}|{maxBs.MaxBuyQuantity}|{maxBs.MaxSellQuantity}|{positions.Count}");
+        Console.WriteLine($"{accounts.Count}|{balance?.AccountBalance}|{maxBs.MaxBuyQuantity}|{maxBs.MaxSellQuantity}|{positions.Count}");
         if (positions.Count > 0)
         {
             var p = positions[0];

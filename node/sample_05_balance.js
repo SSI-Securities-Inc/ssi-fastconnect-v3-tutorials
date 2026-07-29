@@ -32,7 +32,7 @@ for (const acc of accounts) {
 // --- Buoc 2: Lay so du tai khoan Equity ---
 console.log(`\n--- So du tai khoan Equity: ${ACCOUNT_NO} ---`);
 const balance = await trading.portfolio.getEquityBalance(ACCOUNT_NO);
-console.log(`  Tien mat kha dung : ${vnd(balance.availableCash).padStart(15)}`);
+console.log(`  Tien mat kha dung : ${vnd(balance.accountBalance).padStart(15)}`);
 console.log(`  Tong no           : ${vnd(balance.totalDebt).padStart(15)}`);
 console.log(`  Mua T0/T1/T2      : ${vnd(balance.buyT0).padStart(12)} / ${vnd(balance.buyT1).padStart(12)} / ${vnd(balance.buyT2).padStart(12)}`);
 console.log(`  Ban T0/T1/T2      : ${vnd(balance.sellT0).padStart(12)} / ${vnd(balance.sellT1).padStart(12)} / ${vnd(balance.sellT2).padStart(12)}`);
@@ -49,11 +49,11 @@ const desiredQuantity = 100;
 const desiredPrice = 26000;
 const requiredAmount = desiredQuantity * desiredPrice;
 
-if (balance.availableCash >= requiredAmount) {
-  console.log(`\n[OK] Du dieu kien: can ${vnd(requiredAmount)}, co ${vnd(balance.availableCash)}`);
+if (balance.accountBalance >= requiredAmount) {
+  console.log(`\n[OK] Du dieu kien: can ${vnd(requiredAmount)}, co ${vnd(balance.accountBalance)}`);
   console.log('  -> Cho phep dat lenh mua.');
 } else {
-  console.log(`\n[X] Khong du: can ${vnd(requiredAmount)}, chi co ${vnd(balance.availableCash)}`);
+  console.log(`\n[X] Khong du: can ${vnd(requiredAmount)}, chi co ${vnd(balance.accountBalance)}`);
   console.log('  -> Chan dat lenh.');
 }
 
@@ -69,7 +69,7 @@ for (const pos of positions) {
 
 // --- Response Summary ---
 console.log(`\n[Response] accounts|avail_cash|max_buy_qty|max_sell_qty|positions`);
-console.log(`${accounts.length}|${balance.availableCash}|${maxBs.maxBuyQuantity}|${maxBs.maxSellQuantity}|${positions.length}`);
+console.log(`${accounts.length}|${balance.accountBalance}|${maxBs.maxBuyQuantity}|${maxBs.maxSellQuantity}|${positions.length}`);
 if (positions.length > 0) {
   const p = positions[0];
   console.log(`[Response:first_pos] symbol|quantity|sellable|cost_price`);

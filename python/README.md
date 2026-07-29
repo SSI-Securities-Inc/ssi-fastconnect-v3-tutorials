@@ -204,6 +204,21 @@
 **Thành phần kết nối:** Strategy → Market Data API → Account API → Trading API → Monitor/Logger.
 
 ---
+
+## Sample 13 — Đặt Lệnh Điều Kiện (FCO)
+**Mục tiêu:** Đặt và quản lý các loại lệnh điều kiện nâng cao (Fast Conditional Orders).
+
+**Luồng xử lý code:**
+1. Khởi tạo `Trading` service từ `Auth` đã xác thực.
+2. Đặt các loại lệnh FCO: `place_fco_gtd`, `place_fco_stop`, `place_fco_stop_limit`, `place_fco_trailing_stop`, `place_fco_trailing_stop_limit`, `place_fco_oco`, `place_fco_bull_bear`.
+3. Truy vấn danh sách lệnh điều kiện qua `get_fco_by_account_no`.
+4. Hủy lệnh điều kiện FCO qua `cancel_fco(fco_id)`.
+
+**File:** `python/sample_13_fco_order.py` · `python/sample_13_fco_order_async.py`
+
+**Thành phần kết nối:** Client App → Trading API (FCO Endpoints).
+
+---
 - **Manual flow:** Auth (token cache) → Market Data → Account Check → Place Order → Track/Cancel → Realtime Update.
 - **Auto flow:** Auth (token cache) → OHLC/Indicator → Signal Engine → Risk Check → Auto Order → Monitor → P&L Logging.
  

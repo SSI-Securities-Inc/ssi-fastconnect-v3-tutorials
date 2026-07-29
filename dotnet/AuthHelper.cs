@@ -7,14 +7,19 @@ using SsiSdk.Models;
 
 static class AuthHelper
 {
-    private static readonly string SharedTokenFile = Path.Combine(
-        AppContext.BaseDirectory, "..", "..", "..", "..", "shared_token.json");
-    private static readonly string TokenFile = Path.Combine(
-        AppContext.BaseDirectory, "..", "..", "..", "token_cache.json");
+    private static readonly string[] SearchTokenFiles = new[]
+    {
+        Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "token_cache.json"),
+        Path.Combine(Directory.GetCurrentDirectory(), "token_cache.json"),
+        Path.Combine(Directory.GetCurrentDirectory(), "..", "python", "token_cache.json"),
+        Path.Combine(Directory.GetCurrentDirectory(), "..", "go", "token_cache.json"),
+        Path.Combine(Directory.GetCurrentDirectory(), "..", "node", "token_cache.json"),
+        Path.Combine(Directory.GetCurrentDirectory(), "..", "shared_token.json")
+    };
 
     private static Token? LoadToken()
     {
-        foreach (var file in new[] { SharedTokenFile, TokenFile })
+        foreach (var file in SearchTokenFiles)
         {
             if (!File.Exists(file)) continue;
             try
@@ -48,8 +53,9 @@ static class AuthHelper
             ["refreshExpiresAt"] = token.RefreshTokenExpiresAt,
         };
         var json = JsonSerializer.Serialize(dict, new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(TokenFile, json);
-        Console.WriteLine($"Token da luu vao {TokenFile}");
+        var targetFile = Path.Combine(Directory.GetCurrentDirectory(), "token_cache.json");
+        File.WriteAllText(targetFile, json);
+        Console.WriteLine($"Token da luu vao {targetFile}");
     }
 
     public static async Task EnsureAuthAsync(AuthClient auth, string? otp = null)

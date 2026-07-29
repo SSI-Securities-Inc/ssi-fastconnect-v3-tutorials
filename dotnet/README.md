@@ -18,6 +18,7 @@ dotnet run -- 09    # Cancel Order
 dotnet run -- 10    # WebSocket Data
 dotnet run -- 11    # WebSocket Trading
 dotnet run -- 12    # MA Cross Auto Trade
+dotnet run -- 13    # Lệnh điều kiện FCO
 ```
 
 ## Danh sach sample
@@ -36,3 +37,4 @@ dotnet run -- 12    # MA Cross Auto Trade
 | 10 | Sample10WebsocketData.cs | WebSocket du lieu thi truong real-time |
 | 11 | Sample11WebsocketTrading.cs | WebSocket trang thai lenh real-time |
 | 12 | Sample12MaCrossAutoTrade.cs | MA Cross + WebSocket auto trade |
+| 13 | Sample13FcoOrder.cs | Dat & quan ly lenh dieu kien FCO (GTD, Stop, Trailing Stop, OCO, Bull Bear) |

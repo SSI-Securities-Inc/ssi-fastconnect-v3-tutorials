@@ -40,7 +40,7 @@ static class Sample07MarketOrder
         var balance = await trading.Portfolio.GetEquityBalanceAsync(SampleConfig.AccountNo);
         if (balance is not null)
         {
-            Console.WriteLine($"  Tien mat kha dung: {balance.AvailableCash,15:N0}");
+            Console.WriteLine($"  Tien mat kha dung: {balance.AccountBalance,15:N0}");
         }
 
         // --- Buoc 5: Cap nhat danh muc ---

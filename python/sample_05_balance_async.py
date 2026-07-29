@@ -42,33 +42,34 @@ async def main():
             balance_task = trading.portfolio.get_equity_balance(ACCOUNT_NO)
             max_bs_task = trading.trading.get_max_buy_sell(ACCOUNT_NO, "SSI", 26000)
             positions_task = trading.portfolio.get_equity_positions(ACCOUNT_NO)
-            balance, max_bs, positions = await asyncio.gather(
-                balance_task, max_bs_task, positions_task
+            balance, positions = await asyncio.gather(
+                balance_task, positions_task
             )
 
             # --- Bước 3: Hiển thị số dư ---
             print(f"\n--- Số dư tài khoản Equity: {ACCOUNT_NO} ---")
-            print(f"  Tiền mặt khả dụng  : {balance.available_cash:>15,.0f}")
+            print(f"  Tiền mặt khả dụng  : {balance.account_balance:>15,.0f}")
             print(f"  Tổng nợ            : {balance.total_debt:>15,.0f}")
             print(f"  Mua T0/T1/T2       : {balance.buy_t0:>12,.0f} / {balance.buy_t1:>12,.0f} / {balance.buy_t2:>12,.0f}")
             print(f"  Bán T0/T1/T2       : {balance.sell_t0:>12,.0f} / {balance.sell_t1:>12,.0f} / {balance.sell_t2:>12,.0f}")
 
-            # --- Bước 4: Hiển thị sức mua ---
+            # --- Bước 3: Kiểm tra sức mua tối đa cho một mã ---
             print("\n--- Sức mua/bán tối đa: SSI ---")
+            max_bs = await trading.trading.get_max_buy_sell(ACCOUNT_NO, "SSI", 26000)
             print(f"  Max mua : {max_bs.max_buy_quantity:>10} cổ phiếu")
             print(f"  Max bán : {max_bs.max_sell_quantity:>10} cổ phiếu")
-            print(f"  Sức mua : {max_bs.purchase_power:>15,.0f}")
+            print(f"  Sức mua : {max_bs.purchase_power:>15}")
 
-            # --- Bước 5: Logic kiểm tra trước khi đặt lệnh ---
+            # --- Bước 4: Logic kiểm tra trước khi đặt lệnh ---
             desired_quantity = 100
             desired_price = 26000
             required_amount = desired_quantity * desired_price
 
-            if balance.available_cash >= required_amount:
-                print(f"\n✓ Đủ điều kiện: cần {required_amount:,.0f}, có {balance.available_cash:,.0f}")
+            if balance.account_balance >= required_amount:
+                print(f"\n✓ Đủ điều kiện: cần {required_amount:,.0f}, có {balance.account_balance:,.0f}")
                 print("  → Cho phép đặt lệnh mua.")
             else:
-                print(f"\n✗ Không đủ: cần {required_amount:,.0f}, chỉ có {balance.available_cash:,.0f}")
+                print(f"\n✗ Không đủ: cần {required_amount:,.0f}, chỉ có {balance.account_balance:,.0f}")
                 print("  → Chặn đặt lệnh.")
 
             # --- Bước 6: Xem vị thế hiện có ---

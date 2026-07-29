@@ -80,4 +80,4 @@ if (openOrders.length === 0) {
 // --- Buoc 4: Cap nhat lai so du ---
 console.log('\n--- So du sau huy ---');
 const balance = await trading.portfolio.getEquityBalance(ACCOUNT_NO);
-console.log(`  Tien mat kha dung: ${vnd(balance.availableCash).padStart(15)}`);
+console.log(`  Tien mat kha dung: ${vnd(balance.accountBalance).padStart(15)}`);

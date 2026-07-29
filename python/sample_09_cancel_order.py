@@ -82,4 +82,4 @@ with Auth(config) as auth:
     # --- Bước 4: Cập nhật lại số dư ---
     print("\n--- Số dư sau hủy ---")
     balance = trading.portfolio.get_equity_balance(ACCOUNT_NO)
-    print(f"  Tiền mặt khả dụng: {balance.available_cash:>15,.0f}")
+    print(f"  Tiền mặt khả dụng: {balance.account_balance:>15,.0f}")

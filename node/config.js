@@ -1,24 +1,43 @@
 /**
- * config — Cau hinh ket noi dung chung cho toan bo sample
+ * config — Cấu hình kết nối dùng chung cho toàn bộ sample
  * =========================================================
- * Tat ca sample import config tu day thay vi nhung lai trong tung file.
- *
- * Day la thong tin moi truong UAT (sandbox), nhung truc tiep trong code
- * giong nhu sample python/go. Khi chuyen sang production, thay toan bo bang
- * thong tin that do SSI cap (nen dung vault/env var, khong commit key that).
+ * Đọc tự động từ tệp `config.json` tại gốc dự án (ssi-fastconnect-v3-tutorials/config.json).
+ * Nếu không tìm thấy file, sử dụng giá trị mặc định / UAT sandbox.
  */
 
-export const config = {
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const configPath = path.join(__dirname, '..', 'config.json');
+
+let clientConfig = {
   clientId: '<CLIENT_ID>',
   apiKey: '<API_KEY>',
   apiSecret: '<API_SECRET>',
-  // RSA private key (Base64 XML) — dung de ky lenh (sample trading 05-09, 11, 12).
   privateKey: '<PRIVATE_KEY_CONTENT>',
 };
+let accountNo = '<ACCOUNT_NO>';
+let otp = '<OTP>';
 
-// Tai khoan giao dich dung cho cac sample trading & streaming.
-export const ACCOUNT_NO = '<ACCOUNT_NO>';
+if (fs.existsSync(configPath)) {
+  try {
+    const raw = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    clientConfig = {
+      clientId: raw.client_id || clientConfig.clientId,
+      apiKey: raw.api_key || clientConfig.apiKey,
+      apiSecret: raw.api_secret || clientConfig.apiSecret,
+      privateKey: raw.private_key || clientConfig.privateKey,
+    };
+    accountNo = raw.equity_account || accountNo;
+    otp = raw.otp || otp;
+  } catch (e) {
+    console.warn('Lỗi khi đọc config.json:', e.message);
+  }
+}
 
-// OTP chi can o lan authenticate dau tien (khi chua co token_cache.json hop le).
-// Cac lan sau SDK tu refresh bang refresh token, khong can OTP.
-export const OTP = '<OTP>';
+export const config = clientConfig;
+export const ACCOUNT_NO = accountNo;
+export const OTP = otp;

@@ -45,7 +45,7 @@ for (const order of orders.slice(-3)) {
 // --- Buoc 4: Cap nhat lai so du sau khi khop ---
 console.log('\n--- So du sau giao dich ---');
 const balance = await trading.portfolio.getEquityBalance(ACCOUNT_NO);
-console.log(`  Tien mat kha dung: ${vnd(balance.availableCash).padStart(15)}`);
+console.log(`  Tien mat kha dung: ${vnd(balance.accountBalance).padStart(15)}`);
 
 // --- Buoc 5: Cap nhat danh muc ---
 console.log('\n--- Vi the sau giao dich ---');

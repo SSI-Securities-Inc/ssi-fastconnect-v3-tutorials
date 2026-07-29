@@ -22,18 +22,63 @@ import (
 	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/ssi"
 )
 
-const accountNo = "<ACCOUNT_NO>" // VD: "1234561"
+type appConfig struct {
+	ClientID          string `json:"client_id"`
+	APIKey            string `json:"api_key"`
+	APISecret         string `json:"api_secret"`
+	PrivateKey        string `json:"private_key"`
+	OTP               string `json:"otp"`
+	EquityAccount     string `json:"equity_account"`
+	DerivativeAccount string `json:"derivative_account"`
+	LogLevel          string `json:"log_level"`
+}
 
-func main() {
+func loadConfig() (*ssi.Config, string, string) {
 	config := ssi.NewConfig("<CLIENT_ID>")
 	config.APIKey = "<API_KEY>"
 	config.APISecret = "<API_SECRET>"
 	config.PrivateKey = "<PRIVATE_KEY_CONTENT>"
+	accountNo := "<ACCOUNT_NO>"
+	otp := "<OTP>"
+
+	for _, path := range []string{"../config.json", "config.json"} {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			continue
+		}
+		var appCfg appConfig
+		if err := json.Unmarshal(data, &appCfg); err == nil {
+			if appCfg.ClientID != "" {
+				config.ClientID = appCfg.ClientID
+			}
+			if appCfg.APIKey != "" {
+				config.APIKey = appCfg.APIKey
+			}
+			if appCfg.APISecret != "" {
+				config.APISecret = appCfg.APISecret
+			}
+			if appCfg.PrivateKey != "" {
+				config.PrivateKey = appCfg.PrivateKey
+			}
+			if appCfg.EquityAccount != "" {
+				accountNo = appCfg.EquityAccount
+			}
+			if appCfg.OTP != "" {
+				otp = appCfg.OTP
+			}
+			break
+		}
+	}
+	return config, accountNo, otp
+}
+
+func main() {
+	config, accountNo, otp := loadConfig()
 
 	auth := ssi.NewAuth(config)
 	defer auth.Close()
 
-	ensureAuth(auth, "<OTP>")
+	ensureAuth(auth, otp)
 
 	t := ssi.NewTrading(auth)
 
@@ -53,7 +98,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("  Tiền mặt khả dụng : %.0f\n", balance.AvailableCash)
+	fmt.Printf("  Tiền mặt khả dụng : %.0f\n", balance.AccountBalance)
 
 	// --- Bước 3: Kiểm tra sức mua tối đa cho một mã ---
 	fmt.Println("\n--- Sức mua/bán tối đa: SSI ---")
@@ -70,11 +115,11 @@ func main() {
 	desiredPrice := 26000.0
 	requiredAmount := float64(desiredQuantity) * desiredPrice
 
-	if balance.AvailableCash >= requiredAmount {
-		fmt.Printf("\n✓ Đủ điều kiện: cần %.0f, có %.0f\n", requiredAmount, balance.AvailableCash)
+	if balance.AccountBalance >= requiredAmount {
+		fmt.Printf("\n✓ Đủ điều kiện: cần %.0f, có %.0f\n", requiredAmount, balance.AccountBalance)
 		fmt.Println("  → Cho phép đặt lệnh mua.")
 	} else {
-		fmt.Printf("\n✗ Không đủ: cần %.0f, chỉ có %.0f\n", requiredAmount, balance.AvailableCash)
+		fmt.Printf("\n✗ Không đủ: cần %.0f, chỉ có %.0f\n", requiredAmount, balance.AccountBalance)
 		fmt.Println("  → Chặn đặt lệnh.")
 	}
 
@@ -91,7 +136,7 @@ func main() {
 
 	// --- Response Summary ---
 	fmt.Println("\n[Response] accounts|avail_cash|max_buy_qty|max_sell_qty|positions")
-	fmt.Printf("%d|%.0f|%d|%d|%d\n", len(accounts), balance.AvailableCash, maxBS.MaxBuyQuantity, maxBS.MaxSellQuantity, len(positions))
+	fmt.Printf("%d|%.0f|%d|%d|%d\n", len(accounts), balance.AccountBalance, maxBS.MaxBuyQuantity, maxBS.MaxSellQuantity, len(positions))
 	if len(positions) > 0 {
 		p := positions[0]
 		fmt.Println("[Response:first_pos] symbol|quantity|sellable|cost_price")

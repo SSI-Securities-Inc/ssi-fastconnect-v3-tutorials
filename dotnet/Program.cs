@@ -21,5 +21,6 @@ await (sampleId switch
     "10" => Sample10WebsocketData.RunAsync(),
     "11" => Sample11WebsocketTrading.RunAsync(),
     "12" => Sample12MaCrossAutoTrade.RunAsync(),
-    _ => throw new ArgumentException($"Sample '{sampleId}' khong ton tai. Dung 01-12."),
+    "13" => Sample13FcoOrder.RunAsync(),
+    _ => throw new ArgumentException($"Sample '{sampleId}' khong ton tai. Dung 01-13."),
 });

@@ -66,7 +66,7 @@ async def main():
 
             # --- Bước 4: Số dư sau giao dịch ---
             print("\n--- Số dư sau giao dịch ---")
-            print(f"  Tiền mặt khả dụng: {balance.available_cash:>15,.0f}")
+            print(f"  Tiền mặt khả dụng: {balance.account_balance:>15,.0f}")
 
             # --- Bước 5: Danh mục sau giao dịch ---
             print("\n--- Vị thế sau giao dịch ---")

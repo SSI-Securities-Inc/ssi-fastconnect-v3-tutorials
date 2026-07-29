@@ -51,7 +51,7 @@ console.log('Da ket noi!\n');
 
 // --- Buoc 3: Subscribe du lieu theo symbol ---
 console.log('Subscribing du lieu symbol...');
-stream.streaming.subscribeSymbol(['SSI', 'HPG', 'VNM']);
+stream.streaming.subscribeSymbol(["41i1g8000"]);
 
 // --- Buoc 4: Subscribe du lieu theo index ---
 console.log('Subscribing du lieu index...');

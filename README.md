@@ -3,10 +3,10 @@
 Tài liệu hướng dẫn và mã nguồn mẫu tích hợp hệ thống giao dịch chứng khoán của SSI (Saigon Securities Incorporation) qua **SSI FastConnect API**.
 
 ### Ngôn ngữ hỗ trợ
-- [x] **Go** (bao gồm các mẫu từ Sample 01 đến 12)
+- [x] **Go** (bao gồm các mẫu từ Sample 01 đến 13)
 - [x] **Python** (bao gồm cả phiên bản đồng bộ - synchronous và bất đồng bộ - asynchronous)
-- [x] **Node.js** (bao gồm các mẫu từ Sample 01 đến 12)
-- [x] **.NET** (bao gồm các mẫu từ Sample 01 đến 12)
+- [x] **Node.js** (bao gồm các mẫu từ Sample 01 đến 13)
+- [x] **.NET** (bao gồm các mẫu từ Sample 01 đến 13)
 
 ## Mục lục
 - [Giới thiệu](#giới-thiệu)
@@ -25,7 +25,7 @@ Tài liệu hướng dẫn và mã nguồn mẫu tích hợp hệ thống giao d
 Bộ mã nguồn này cung cấp các ví dụ thực tế giúp nhà phát triển nhanh chóng nắm bắt cách thức giao tiếp với cổng API của SSI để thực hiện:
 * Truy vấn thông tin tài khoản và số dư.
 * Lấy dữ liệu thị trường (chỉ số, thông tin cổ phiếu, dữ liệu nến lịch sử và intraday).
-* Thực hiện giao dịch (đặt lệnh LO, lệnh MP, hủy lệnh, theo dõi trạng thái lệnh).
+* Thực hiện giao dịch (đặt lệnh LO, lệnh MP, hủy lệnh, theo dõi trạng thái lệnh, đặt & quản lý lệnh điều kiện FCO).
 * Đăng ký nhận dữ liệu thời gian thực (real-time stream) qua kết nối WebSocket bảo mật.
 * Triển khai chiến thuật giao dịch tự động hóa cơ bản (ví dụ: giao cắt đường trung bình động MA).
 
@@ -61,6 +61,7 @@ Dưới đây là chi tiết các mẫu kiểm thử tương ứng theo từng n
 | **10** | WebSocket Thị trường | `sample_10_websocket_data.go` | `sample_10_websocket_data.py`<br>`sample_10_websocket_data_async.py` | `sample_10_websocket_data.js` | `Sample10WebsocketData.cs` | Nhận luồng dữ liệu thời gian thực (giá khớp, thông tin bảng giá, room khối ngoại) bằng kết nối WebSocket. |
 | **11** | WebSocket Giao dịch | `sample_11_websocket_trading.go` | `sample_11_websocket_trading.py`<br>`sample_11_websocket_trading_async.py` | `sample_11_websocket_trading.js` | `Sample11WebsocketTrading.cs` | Lắng nghe các thay đổi tức thời về trạng thái khớp lệnh và danh mục tài sản của người dùng. |
 | **12** | Chiến thuật MA Cross | `sample_12_ma_cross_auto_trade.go` | `sample_12_ma_cross_auto_trade.py`<br>`sample_12_ma_cross_auto_trade_async.py` | `sample_12_ma_cross_auto_trade.js` | `Sample12MaCrossAutoTrade.cs` | Mô phỏng hệ thống tự động hóa hoàn chỉnh: Tính toán MA5/MA10, tạo tín hiệu giao dịch, kiểm tra điều kiện rủi ro, đặt lệnh và theo dõi. |
+| **13** | Lệnh điều kiện (FCO) | `sample_13_fco_order.go` | `sample_13_fco_order.py`<br>`sample_13_fco_order_async.py` | `sample_13_fco_order.js` | `Sample13FcoOrder.cs` | Đặt và quản lý toàn bộ các loại lệnh điều kiện FCO (GTD, Stop, Stop Limit, Trailing Stop, Trailing Stop Limit, OCO, Bull Bear, truy vấn & hủy lệnh FCO). |
 
 ---
 
