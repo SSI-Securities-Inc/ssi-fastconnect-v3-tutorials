@@ -4,7 +4,7 @@
 using SsiSdk;
 using SsiSdk.Models;
 
-static class Sample11WebsocketTrading
+public static class Sample12WebsocketTrading
 {
     public static async Task RunAsync()
     {

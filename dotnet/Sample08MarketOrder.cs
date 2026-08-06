@@ -3,7 +3,7 @@
 
 using SsiSdk;
 
-static class Sample07MarketOrder
+public static class Sample08MarketOrder
 {
     public static async Task RunAsync()
     {

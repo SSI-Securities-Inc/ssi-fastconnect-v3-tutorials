@@ -3,7 +3,7 @@
 
 using SsiSdk;
 
-static class Sample04Securities
+public static class Sample05Securities
 {
     public static async Task RunAsync()
     {

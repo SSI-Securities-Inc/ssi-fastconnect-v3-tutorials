@@ -28,7 +28,22 @@
 
 ---
 
-## Sample 2 — Lấy danh sách chỉ số thị trường (Index)
+## Sample 2 — Yêu cầu & Xác thực OTP (Request OTP & Verify OTP / Smart OTP)
+**Mục tiêu:** Thực hiện gửi yêu cầu OTP và xử lý xác thực (Verify OTP) hoặc Polling phê duyệt Push Notification đối với Smart OTP.
+
+**Luồng xử lý code:**
+1. Gọi `request_otp()` gửi yêu cầu mã OTP (SMS/Email/Smart OTP Push).
+2. Nếu tài khoản đăng ký Smart OTP Push Notification:
+   - Nhận `transactionId` từ response.
+   - Gọi `ensure_authenticated(transaction_id=...)` để SDK tự động Polling chờ bấm Approve trên ứng dụng di động SSI.
+3. Nếu tài khoản dùng mã OTP 6 số (SMS/Email/Mã hiển thị trên App Smart OTP):
+   - Nhập mã OTP 6 số và gọi `authenticate(otp=...)`.
+
+**File:** `python/sample_02_otp.py` · `python/sample_02_otp_async.py`
+
+---
+
+## Sample 3 — Lấy danh sách chỉ số thị trường (Index)
 **Mục tiêu:** Hiển thị VN-Index, HNX-Index… trên dashboard.
 
 **Luồng xử lý code:**
@@ -38,13 +53,13 @@
 4. Lấy summary chi tiết cho một chỉ số cụ thể (`get_index_summary`).
 5. Lọc chỉ số theo sàn (`get_indexes_by_board`).
 
-**File:** `python/sample_02_index_list.py` · `python/sample_02_index_list_async.py`
+**File:** `python/sample_03_index_list.py` · `python/sample_03_index_list_async.py`
 
 **Thành phần kết nối:** UI Dashboard → Market Data API (Index) → Cache State.
 
 ---
 
-## Sample 3 — Lấy dữ liệu K-line (OHLC)
+## Sample 4 — Lấy dữ liệu K-line (OHLC)
 **Mục tiêu:** Cung cấp dữ liệu nến cho biểu đồ và phân tích kỹ thuật.
 
 **Luồng xử lý code:**
@@ -54,13 +69,13 @@
 4. Hỗ trợ nhiều timeframe: 1m, 3m, 5m, 15m, 1h, 1d (intraday & historical).
 5. Nếu lịch sử dài thì lặp theo paging/window thời gian.
 
-**File:** `python/sample_03_ohlc.py` · `python/sample_03_ohlc_async.py`
+**File:** `python/sample_04_ohlc.py` · `python/sample_04_ohlc_async.py`
 
 **Thành phần kết nối:** Chart/Strategy Module → Market Data API (OHLC) → Chart Engine.
 
 ---
 
-## Sample 4 — Lấy danh sách cổ phiếu theo sàn
+## Sample 5 — Lấy danh sách cổ phiếu theo sàn
 **Mục tiêu:** Tạo watchlist/screener theo tiêu chí thị trường.
 
 **Luồng xử lý code:**
@@ -70,13 +85,13 @@
 4. Lấy lịch sử summary qua `get_securities_summary_historical`.
 5. Khi user chọn mã, chuyển sang luồng xem chi tiết/đặt lệnh.
 
-**File:** `python/sample_04_securities.py` · `python/sample_04_securities_async.py`
+**File:** `python/sample_05_securities.py` · `python/sample_05_securities_async.py`
 
 **Thành phần kết nối:** Screener → Market Data API (Securities) → Watchlist State.
 
 ---
 
-## Sample 5 — Lấy số dư tài khoản (Account Balance)
+## Sample 6 — Lấy số dư tài khoản (Account Balance)
 **Mục tiêu:** Kiểm tra khả năng giao dịch trước khi đặt lệnh.
 
 **Luồng xử lý code:**
@@ -86,13 +101,13 @@
 4. Nếu không đủ điều kiện thì chặn thao tác đặt lệnh.
 5. Nếu đủ điều kiện thì cho phép đi tiếp sang order flow.
 
-**File:** `python/sample_05_balance.py` · `python/sample_05_balance_async.py`
+**File:** `python/sample_06_balance.py` · `python/sample_06_balance_async.py`
 
 **Thành phần kết nối:** Trading Service → Account API → Validation Rule Engine.
 
 ---
 
-## Sample 6 — Đặt lệnh Limit
+## Sample 7 — Đặt lệnh Limit
 **Mục tiêu:** Đặt lệnh mua/bán tại mức giá chỉ định.
 
 **Luồng xử lý code:**
@@ -102,13 +117,13 @@
 4. API trả về `orderId` và trạng thái ban đầu (`PENDING`).
 5. Code lưu `orderId` để theo dõi khớp lệnh.
 
-**File:** `python/sample_06_limit_order.py` · `python/sample_06_limit_order_async.py`
+**File:** `python/sample_07_limit_order.py` · `python/sample_07_limit_order_async.py`
 
 **Thành phần kết nối:** Order → Trading API (Create Order) → Order Tracking.
 
 ---
 
-## Sample 7 — Đặt lệnh Market
+## Sample 8 — Đặt lệnh Market
 **Mục tiêu:** Khớp lệnh nhanh theo giá thị trường hiện tại.
 
 **Luồng xử lý code:**
@@ -118,13 +133,13 @@
 4. API trả về trạng thái khớp (`FILLED` hoặc `PARTIALLY_FILLED`).
 5. Code cập nhật ngay danh mục/số dư tạm tính.
 
-**File:** `python/sample_07_market_order.py` · `python/sample_07_market_order_async.py`
+**File:** `python/sample_08_market_order.py` · `python/sample_08_market_order_async.py`
 
 **Thành phần kết nối:** Quick Trade → Trading Matching Engine (qua API) → Portfolio.
 
 ---
 
-## Sample 8 — Kiểm tra trạng thái lệnh
+## Sample 9 — Kiểm tra trạng thái lệnh
 **Mục tiêu:** Theo dõi tiến trình khớp của một lệnh cụ thể.
 
 **Luồng xử lý code:**
@@ -134,13 +149,13 @@
 4. Nếu chưa hoàn tất thì tiếp tục polling chu kỳ ngắn.
 5. Khi `FILLED/CANCELLED/REJECTED` thì đóng vòng theo dõi.
 
-**File:** `python/sample_08_order_status.py` · `python/sample_08_order_status_async.py`
+**File:** `python/sample_09_order_status.py` · `python/sample_09_order_status_async.py`
 
 **Thành phần kết nối:** Order Monitor Service → Trading API (Order Detail) → Execution.
 
 ---
 
-## Sample 9 — Hủy lệnh
+## Sample 10 — Hủy lệnh
 **Mục tiêu:** Dừng phần khối lượng chưa khớp của lệnh đang mở.
 
 **Luồng xử lý code:**
@@ -150,13 +165,13 @@
 4. Nếu hợp lệ, hệ thống cập nhật `CANCELLED` cho phần chưa khớp.
 5. Code đồng bộ lại sổ lệnh và số lượng còn treo.
 
-**File:** `python/sample_09_cancel_order.py` · `python/sample_09_cancel_order_async.py`
+**File:** `python/sample_10_cancel_order.py` · `python/sample_10_cancel_order_async.py`
 
 **Thành phần kết nối:** Open Orders → Trading API (Cancel Order) → Order Book State.
 
 ---
 
-## Sample 10 — WebSocket dữ liệu thị trường real-time
+## Sample 11 — WebSocket dữ liệu thị trường real-time
 **Mục tiêu:** Nhận tick data (giá khớp, bảng giá, room nước ngoài) tức thời.
 
 **Luồng xử lý code:**
@@ -166,13 +181,13 @@
 4. Callback `on_data` phân loại message: `TradeMessage`, `QuoteMessage`, `ForeignRoomMessage`.
 5. Khi mất kết nối, chạy cơ chế reconnect exponential backoff.
 
-**File:** `python/sample_10_websocket_data.py` · `python/sample_10_websocket_data_async.py`
+**File:** `python/sample_11_websocket_data.py` · `python/sample_11_websocket_data_async.py`
 
 **Thành phần kết nối:** Client ↔ Streaming API ↔ Market Data Event.
 
 ---
 
-## Sample 11 — WebSocket trading real-time (trạng thái lệnh & danh mục)
+## Sample 12 — WebSocket trading real-time (trạng thái lệnh & danh mục)
 **Mục tiêu:** Nhận cập nhật tức thời về lệnh khớp và danh mục tài khoản.
 
 **Luồng xử lý code:**
@@ -182,13 +197,13 @@
 4. Callback `on_trading` phân loại message: `OrderStatusMessage`, `PortfolioMessage`.
 5. Khi mất kết nối, chạy cơ chế reconnect exponential backoff.
 
-**File:** `python/sample_11_websocket_trading.py` · `python/sample_11_websocket_trading_async.py`
+**File:** `python/sample_12_websocket_trading.py` · `python/sample_12_websocket_trading_async.py`
 
 **Thành phần kết nối:** Client ↔ Streaming API ↔ Trading Event.
 
 ---
 
-## Sample 12 — MA Cross Signal + Auto Place & Monitor
+## Sample 13 — MA Cross Signal + Auto Place & Monitor
 **Mục tiêu:** Tự động giao dịch khi MA5 cắt MA10.
 
 **Luồng xử lý code:**
@@ -199,13 +214,13 @@
 5. Theo dõi trạng thái đến khi `FILLED`, timeout thì hủy lệnh.
 6. Ghi log kết quả giao dịch và tính P&L cơ bản.
 
-**File:** `python/sample_12_ma_cross_auto_trade.py` · `python/sample_12_ma_cross_auto_trade_async.py`
+**File:** `python/sample_13_ma_cross_auto_trade.py` · `python/sample_13_ma_cross_auto_trade_async.py`
 
 **Thành phần kết nối:** Strategy → Market Data API → Account API → Trading API → Monitor/Logger.
 
 ---
 
-## Sample 13 — Đặt Lệnh Điều Kiện (FCO)
+## Sample 14 — Đặt Lệnh Điều Kiện (FCO)
 **Mục tiêu:** Đặt và quản lý các loại lệnh điều kiện nâng cao (Fast Conditional Orders).
 
 **Luồng xử lý code:**
@@ -214,7 +229,7 @@
 3. Truy vấn danh sách lệnh điều kiện qua `get_fco_by_account_no`.
 4. Hủy lệnh điều kiện FCO qua `cancel_fco(fco_id)`.
 
-**File:** `python/sample_13_fco_order.py` · `python/sample_13_fco_order_async.py`
+**File:** `python/sample_14_fco_order.py` · `python/sample_14_fco_order_async.py`
 
 **Thành phần kết nối:** Client App → Trading API (FCO Endpoints).
 

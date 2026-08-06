@@ -4,7 +4,7 @@
 using SsiSdk;
 using SsiSdk.Models;
 
-static class Sample10WebsocketData
+public static class Sample11WebsocketData
 {
     public static async Task RunAsync()
     {

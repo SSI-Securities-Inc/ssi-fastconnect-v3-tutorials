@@ -56,18 +56,19 @@ Tất cả sample import config từ `config.js` (thay vì nhúng lại trong t�
 | # | File | Mô tả | OTP |
 |---|------|-------|-----|
 | 01 | `sample_01_auth.js` | Xác thực, lấy access token | – |
-| 02 | `sample_02_index_list.js` | Danh sách chỉ số (VN-Index, HNX-Index...) | – |
-| 03 | `sample_03_ohlc.js` | Dữ liệu nến K-line (OHLC) | – |
-| 04 | `sample_04_securities.js` | Danh sách cổ phiếu theo sàn | – |
-| 05 | `sample_05_balance.js` | Số dư & sức mua tài khoản | ✔ |
-| 06 | `sample_06_limit_order.js` | Đặt lệnh giới hạn (LO) | ✔ |
-| 07 | `sample_07_market_order.js` | Đặt lệnh thị trường (MTL) | ✔ |
-| 08 | `sample_08_order_status.js` | Polling trạng thái lệnh | ✔ |
-| 09 | `sample_09_cancel_order.js` | Hủy lệnh chưa khớp | ✔ |
-| 10 | `sample_10_websocket_data.js` | Giá real-time (Trade/Quote/Room) | – |
-| 11 | `sample_11_websocket_trading.js` | Trạng thái lệnh & danh mục real-time | ✔ |
-| 12 | `sample_12_ma_cross_auto_trade.js` | Tự động giao dịch theo tín hiệu MA5 cắt MA10 | ✔ |
-| 13 | `sample_13_fco_order.js` | Đặt & quản lý lệnh điều kiện FCO (GTD, Stop, Trailing Stop, OCO, Bull Bear) | ✔ |
+| 02 | `sample_02_otp.js` | Yêu cầu & Xác thực OTP / Push Smart OTP | ✔ |
+| 03 | `sample_03_index_list.js` | Danh sách chỉ số (VN-Index, HNX-Index...) | – |
+| 04 | `sample_04_ohlc.js` | Dữ liệu nến K-line (OHLC) | – |
+| 05 | `sample_05_securities.js` | Danh sách cổ phiếu theo sàn | – |
+| 06 | `sample_06_balance.js` | Số dư & sức mua tài khoản | ✔ |
+| 07 | `sample_07_limit_order.js` | Đặt lệnh giới hạn (LO) | ✔ |
+| 08 | `sample_08_market_order.js` | Đặt lệnh thị trường (MTL) | ✔ |
+| 09 | `sample_09_order_status.js` | Polling trạng thái lệnh | ✔ |
+| 10 | `sample_10_cancel_order.js` | Hủy lệnh chưa khớp | ✔ |
+| 11 | `sample_11_websocket_data.js` | Giá real-time (Trade/Quote/Room) | – |
+| 12 | `sample_12_websocket_trading.js` | Trạng thái lệnh & danh mục real-time | ✔ |
+| 13 | `sample_13_ma_cross_auto_trade.js` | Tự động giao dịch theo tín hiệu MA5 cắt MA10 | ✔ |
+| 14 | `sample_14_fco_order.js` | Đặt & quản lý lệnh điều kiện FCO (GTD, Stop, Trailing Stop, OCO, Bull Bear) | ✔ |
 
 > Sample 05–09, 11–13 ký lệnh bằng RSA (dùng `privateKey` trong `config.js`). Các sample WebSocket
 > (10–12) tự dừng sau 5 phút hoặc khi nhấn `Ctrl+C`.

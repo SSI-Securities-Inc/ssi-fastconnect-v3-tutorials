@@ -3,7 +3,7 @@
 
 using SsiSdk;
 
-static class Sample08OrderStatus
+public static class Sample09OrderStatus
 {
     private static readonly HashSet<string> TerminalStatuses = new()
     {

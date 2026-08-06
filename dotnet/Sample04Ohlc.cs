@@ -3,7 +3,7 @@
 
 using SsiSdk;
 
-static class Sample03Ohlc
+public static class Sample04Ohlc
 {
     private const string Symbol = "SSI";
 

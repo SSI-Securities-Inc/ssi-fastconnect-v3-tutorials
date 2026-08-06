@@ -5,7 +5,7 @@
 using SsiSdk;
 using SsiSdk.Models;
 
-static class Sample12MaCrossAutoTrade
+public static class Sample13MaCrossAutoTrade
 {
     private const string Symbol = "SSI";
     private const int MaFast = 5;

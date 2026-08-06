@@ -3,7 +3,7 @@
 
 using SsiSdk;
 
-static class Sample06LimitOrder
+public static class Sample07LimitOrder
 {
     public static async Task RunAsync()
     {

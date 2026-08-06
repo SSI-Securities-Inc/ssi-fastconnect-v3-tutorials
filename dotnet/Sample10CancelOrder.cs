@@ -3,7 +3,7 @@
 
 using SsiSdk;
 
-static class Sample09CancelOrder
+public static class Sample10CancelOrder
 {
     private static readonly HashSet<string> CancellableStatuses = new()
     {

@@ -3,7 +3,7 @@
 
 using SsiSdk;
 
-static class Sample02IndexList
+public static class Sample03IndexList
 {
     public static async Task RunAsync()
     {

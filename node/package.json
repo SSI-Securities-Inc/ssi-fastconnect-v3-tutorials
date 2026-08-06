@@ -5,18 +5,19 @@
   "description": "FastConnect Node.js SDK samples",
   "scripts": {
     "sample:01": "node sample_01_auth.js",
-    "sample:02": "node sample_02_index_list.js",
-    "sample:03": "node sample_03_ohlc.js",
-    "sample:04": "node sample_04_securities.js",
-    "sample:05": "node sample_05_balance.js",
-    "sample:06": "node sample_06_limit_order.js",
-    "sample:07": "node sample_07_market_order.js",
-    "sample:08": "node sample_08_order_status.js",
-    "sample:09": "node sample_09_cancel_order.js",
-    "sample:10": "node sample_10_websocket_data.js",
-    "sample:11": "node sample_11_websocket_trading.js",
-    "sample:12": "node sample_12_ma_cross_auto_trade.js",
-    "sample:13": "node sample_13_fco_order.js"
+    "sample:02": "node sample_02_otp.js",
+    "sample:03": "node sample_03_index_list.js",
+    "sample:04": "node sample_04_ohlc.js",
+    "sample:05": "node sample_05_securities.js",
+    "sample:06": "node sample_06_balance.js",
+    "sample:07": "node sample_07_limit_order.js",
+    "sample:08": "node sample_08_market_order.js",
+    "sample:09": "node sample_09_order_status.js",
+    "sample:10": "node sample_10_cancel_order.js",
+    "sample:11": "node sample_11_websocket_data.js",
+    "sample:12": "node sample_12_websocket_trading.js",
+    "sample:13": "node sample_13_ma_cross_auto_trade.js",
+    "sample:14": "node sample_14_fco_order.js"
   },
   "dependencies": {
     "@ssi.developer/ssi-sdk": "file:../../sdk/ssi-sdk-node"

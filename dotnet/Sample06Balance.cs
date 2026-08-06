@@ -3,7 +3,7 @@
 
 using SsiSdk;
 
-static class Sample05Balance
+public static class Sample06Balance
 {
     public static async Task RunAsync()
     {
