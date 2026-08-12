@@ -1,9 +1,9 @@
-// Sample 4 — Lay danh sach co phieu theo san
+// Sample 04 — Lấy danh sách cổ phiếu theo sàn
 // Tao watchlist/screener theo tieu chi thi truong.
 
 using SsiSdk;
 
-static class Sample04Securities
+public static class Sample04Securities
 {
     public static async Task RunAsync()
     {

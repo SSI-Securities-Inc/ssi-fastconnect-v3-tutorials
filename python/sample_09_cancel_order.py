@@ -11,19 +11,10 @@ Luồng:
   5. Đồng bộ lại sổ lệnh và số lượng còn treo
 """
 
-from ssi_sdk import Auth, Trading, Config
+from ssi_sdk import Auth, Trading
 from ssi_sdk.enums import OrderStatus
 from auth_helper import ensure_auth
-
-config = Config(
-    client_id="<CLIENT_ID>",
-    api_key="<API_KEY>",
-    api_secret="<API_SECRET>",
-    private_key=("<PRIVATE_KEY_CONTENT>"),
-    log_level="DEBUG",
-)
-
-ACCOUNT_NO = "<ACCOUNT_NO>"
+from config import config, ACCOUNT_NO, OTP
 # Trạng thái có thể hủy
 CANCELLABLE_STATUSES = {
     OrderStatus.PENDING_APPROVAL,
@@ -34,7 +25,7 @@ CANCELLABLE_STATUSES = {
 }
 
 with Auth(config) as auth:
-    ensure_auth(auth, otp="<OTP>")
+    ensure_auth(auth, otp=OTP)
 
     with Trading(auth) as trading:
         # --- Bước 1: Lấy sổ lệnh, tìm lệnh đang mở ---

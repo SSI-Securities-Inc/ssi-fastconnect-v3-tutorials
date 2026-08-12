@@ -1,11 +1,11 @@
-// Sample 12 — MA Cross Signal Real-time (WebSocket bars)
+// Sample 12 — MA Cross Signal + Auto Place & Monitor
 // Ket hop WebSocket de nhan tick real-time, tu aggregate thanh nen,
 // tinh MA5/MA10, dat lenh khi giao cat va theo doi lenh qua stream.
 
 using SsiSdk;
 using SsiSdk.Models;
 
-static class Sample12MaCrossAutoTrade
+public static class Sample12MaCrossAutoTrade
 {
     private const string Symbol = "SSI";
     private const int MaFast = 5;

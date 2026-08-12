@@ -1,6 +1,21 @@
+# FastConnect Go SDK Samples
+
+## Cấu hình (`config.json`)
+
+Các file sample trong thư mục Go tự động đọc cấu hình từ `../config.json` hoặc `config.json`.
+
+1. Tạo tệp `config.json` tại thư mục gốc dự án (nếu chưa có):
+   ```bash
+   cp ../config.example.json ../config.json
+   ```
+2. Điền các thông số kết nối API (`client_id`, `api_key`, `api_secret`, `private_key`, `equity_account`, `otp`) vào `config.json`.
+
+## Hướng dẫn chạy từng Sample
+
+```bash
 cd go
 
-# Sample 1 — Auth
+# Sample 01 — Auth & Request/Verify OTP
 go run sample_01_auth.go
 
 # Sample 2 — Index list

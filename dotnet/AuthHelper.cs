@@ -62,29 +62,79 @@ static class AuthHelper
     {
         var cached = LoadToken();
 
-        if (cached is null)
+        if (cached is not null)
         {
-            Console.WriteLine("Khong tim thay file token, dang authenticate...");
-            cached = string.IsNullOrEmpty(otp)
-                ? await auth.AuthenticateAsync()
-                : await auth.AuthenticateAsync(otp);
-            SaveToken(cached);
-            Console.WriteLine("Authenticate thanh cong, token da luu.");
-            return;
+            auth.TokenManager.SetToken(cached);
+            if (!auth.TokenManager.IsTokenExpired)
+            {
+                Console.WriteLine("Token con han, dung token tu file.");
+                return;
+            }
+
+            Console.WriteLine("Token da het han, dang refresh...");
+            try
+            {
+                cached = await auth.RefreshAsync();
+                SaveToken(cached);
+                Console.WriteLine("Refresh token thanh cong.");
+                return;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Refresh token that bai ({ex.Message}), tien hanh xac thuc lai...");
+            }
         }
 
-        auth.TokenManager.SetToken(cached);
-
-        if (auth.TokenManager.IsTokenExpired)
+        Console.WriteLine("Khong tim thay token hop le, dang thuc hien quy trinh xac thuc & OTP...");
+        if (!string.IsNullOrEmpty(otp))
         {
-            Console.WriteLine("Token da het han, dang refresh...");
-            cached = await auth.RefreshAsync();
-            SaveToken(cached);
-            Console.WriteLine("Refresh token thanh cong.");
+            cached = await auth.AuthenticateAsync(otp);
         }
         else
         {
-            Console.WriteLine("Token con han, dung token tu file.");
+            Console.WriteLine("=== Yeu cau OTP (Request OTP) ===");
+            var otpRes = await auth.RequestOtpAsync();
+            string? transactionId = null;
+            if (otpRes.ValueKind == JsonValueKind.Object)
+            {
+                if (otpRes.TryGetProperty("data", out var dataObj) && dataObj.ValueKind == JsonValueKind.Object)
+                {
+                    if (dataObj.TryGetProperty("transactionId", out var tid))
+                        transactionId = tid.GetString();
+                }
+                if (string.IsNullOrEmpty(transactionId) && otpRes.TryGetProperty("transactionId", out var tid2))
+                {
+                    transactionId = tid2.GetString();
+                }
+            }
+
+            if (!string.IsNullOrEmpty(transactionId))
+            {
+                Console.WriteLine($"[Smart OTP] Transaction ID: {transactionId}");
+                Console.WriteLine("Vui long mo ung dung SSI tren dien thoai va bam APPROVE (Xac nhan)...");
+                Console.WriteLine("SDK dang Polling cho ban bam phe duyet...");
+                var accessToken = await auth.EnsureAuthenticatedAsync(
+                    transactionId: transactionId,
+                    pollInterval: TimeSpan.FromSeconds(5),
+                    pollMaxRetries: 6
+                );
+                cached = auth.TokenManager.Token;
+            }
+            else
+            {
+                Console.Write("Vui long nhap ma OTP 6 so: ");
+                var userOtp = Console.ReadLine()?.Trim() ?? "";
+                if (!string.IsNullOrEmpty(userOtp))
+                {
+                    cached = await auth.AuthenticateAsync(otp: userOtp);
+                }
+            }
+        }
+
+        if (auth.TokenManager.Token is not null)
+        {
+            SaveToken(auth.TokenManager.Token);
+            Console.WriteLine("Authenticate thanh cong, token da luu.");
         }
     }
 }

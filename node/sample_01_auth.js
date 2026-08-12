@@ -1,14 +1,15 @@
 /**
- * Sample 1 — Xac thuc va lay Access Token
- * =========================================
- * Dang nhap va lay token cho toan bo API call sau do.
+ * Sample 1 — Xác thực, Yêu cầu & Xác thực OTP (Request OTP & Verify OTP / Smart OTP)
+ * ==============================================================================
+ * Đăng nhập, xử lý luồng OTP (Smart OTP Push Polling / OTP 6 số) và lấy token cho toàn bộ API call sau đó.
  *
- * Luong:
- *   1. Tao Config -> Auth -> authenticate(otp=...)
- *   2. Auth service tra ve accessToken, refreshToken, expiresAt
- *   3. Luu token vao token_cache.json de tai su dung
- *   4. Moi request sau do gan Authorization: Bearer <accessToken>
- *   5. Neu token het han thi goi refresh/re-login
+ * Luồng:
+ *   1. Tạo Config -> Auth
+ *   2. Kiểm tra token cache / refresh token nếu có
+ *   3. Nếu chưa có token: Gọi requestOtp(), Polling Smart OTP hoặc nhập mã OTP 6 số
+ *   4. Auth service trả về accessToken, refreshToken, expiresAt và lưu token_cache.json
+ *   5. Mọi request sau đó gắn Authorization: Bearer <accessToken>
+ *   6. Kiểm tra token hoạt động bằng cách gọi API lấy thông tin tài khoản
  */
 
 import { Auth, Trading } from '@ssi.developer/ssi-sdk';
@@ -17,28 +18,26 @@ import { ensureAuth } from './auth_helper.js';
 
 const auth = new Auth(config);
 
-// --- Buoc 1-2: Xac thuc, nhan accessToken + refreshToken ---
+// --- Bước 1-3: Xác thực + Yêu cầu & Xác thực OTP / Smart OTP ---
 await ensureAuth(auth);
 const token = auth.getToken();
-console.log('Access Token :', token.accessToken.slice(0, 40), '...');
+console.log('\n--- Thông tin Token ---');
+console.log('Access Token :', token.accessToken ? `${token.accessToken.slice(0, 40)} ...` : 'N/A');
 console.log('Token Type   :', token.tokenType);
 console.log('Expires At   :', token.expiresAt);
 console.log('Refresh Token:', token.refreshToken ? `${token.refreshToken.slice(0, 40)} ...` : 'N/A');
 
-// --- Buoc 3: Token da duoc SDK luu tu dong, moi request ke tiep ---
-//     se gan header Authorization: Bearer <accessToken>
-
-// --- Buoc 4: Kiem tra token het han & refresh ---
+// --- Bước 4: Kiểm tra token hết hạn & refresh ---
 if (!auth.tokenManager.isAuthenticated()) {
-  console.log('\nToken het han, dang refresh...');
+  console.log('\nToken hết hạn, đang refresh...');
   const newToken = await auth.refresh();
-  console.log('Token moi    :', newToken.accessToken.slice(0, 40), '...');
+  console.log('Token mới    :', newToken.accessToken.slice(0, 40), '...');
 }
 
-// --- Xac nhan token hoat dong bang cach goi API ---
+// --- Bước 5: Xác nhận token hoạt động bằng cách gọi API ---
 const trading = new Trading(auth);
 const accounts = await trading.account.getAccountInfo();
-console.log(`\nXac thuc thanh cong! Tim thay ${accounts.length} tai khoan:`);
+console.log(`\nXác thực thành công! Tìm thấy ${accounts.length} tài khoản:`);
 for (const acc of accounts) {
   console.log(`  - ${acc.accountNo} (${acc.accountType})`);
 }
@@ -50,3 +49,4 @@ console.log(`[Response:account] account_no|account_type`);
 for (const acc of accounts) {
   console.log(`${acc.accountNo}|${acc.accountType}`);
 }
+

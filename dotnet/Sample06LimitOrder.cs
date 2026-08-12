@@ -1,9 +1,10 @@
 // Sample 6 — Dat lenh Limit (LO)
-// Dat lenh mua/ban tai muc gia chi dinh.
+// Sample 06 — Đặt lệnh Limit
 
 using SsiSdk;
+using SsiSdk.Models;
 
-static class Sample06LimitOrder
+public static class Sample06LimitOrder
 {
     public static async Task RunAsync()
     {

@@ -13,19 +13,11 @@ Luồng:
 
 import asyncio
 
-from ssi_sdk import AsyncAuth, AsyncTrading, Config
+from ssi_sdk import AsyncAuth, AsyncTrading
 from ssi_sdk.enums import OrderStatus
 from auth_helper import ensure_auth_async
+from config import config, ACCOUNT_NO, OTP
 
-config = Config(
-    client_id="<CLIENT_ID>",
-    api_key="<API_KEY>",
-    api_secret="<API_SECRET>",
-    private_key=("<PRIVATE_KEY_CONTENT>"),
-    log_level="DEBUG",
-)
-
-ACCOUNT_NO = "<ACCOUNT_NO>"
 CANCELLABLE_STATUSES = {
     OrderStatus.PENDING_APPROVAL,
     OrderStatus.READY,
@@ -37,7 +29,7 @@ CANCELLABLE_STATUSES = {
 
 async def main():
     async with AsyncAuth(config) as auth:
-        await ensure_auth_async(auth, otp="<OTP>")
+        await ensure_auth_async(auth, otp=OTP)
 
         async with AsyncTrading(auth) as trading:
             # --- Bước 1: Lấy sổ lệnh, tìm lệnh đang mở ---

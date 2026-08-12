@@ -1,9 +1,64 @@
+# FastConnect Python SDK Samples
+
+Bộ sample minh họa 13 kịch bản sử dụng **SSI FastConnect Python SDK** (`ssi-sdk`). Hỗ trợ cả hai phiên bản **Synchronous (đồng bộ)** và **Asynchronous (bất đồng bộ)**.
+
+## 1. Cấu hình (`config.json` / `config.py`)
+
+Tất cả sample trong thư mục Python tự động tải cấu hình từ tệp `config.json` ở thư mục gốc dự án (`../config.json`).
+
+1. Tạo tệp `config.json` tại thư mục gốc dự án:
+   ```bash
+   cp ../config.example.json ../config.json
+   ```
+2. Điền các tham số API (`client_id`, `api_key`, `api_secret`, `private_key`, `equity_account`, `otp`) vào `config.json`.
+3. Hoặc bạn có thể sửa trực tiếp trong `python/config.py`.
+
+---
+
+## 2. Hướng dẫn chạy từng Sample
+
+### Chạy phiên bản Đồng bộ (Sync)
+```bash
+python sample_01_auth.py                # Sample 01 — Auth & OTP
+python sample_02_index_list.py          # Sample 02 — Chỉ số thị trường
+python sample_03_ohlc.py                # Sample 03 — Dữ liệu nến OHLC
+python sample_04_securities.py          # Sample 04 — Danh sách cổ phiếu
+python sample_05_balance.py             # Sample 05 — Số dư tài khoản
+python sample_06_limit_order.py         # Sample 06 — Đặt lệnh Limit
+python sample_07_market_order.py        # Sample 07 — Đặt lệnh Market
+python sample_08_order_status.py        # Sample 08 — Trạng thái lệnh
+python sample_09_cancel_order.py        # Sample 09 — Hủy lệnh
+python sample_10_websocket_data.py      # Sample 10 — WebSocket Thị trường
+python sample_11_websocket_trading.py   # Sample 11 — WebSocket Giao dịch
+python sample_12_ma_cross_auto_trade.py # Sample 12 — Chiến thuật MA Cross
+python sample_13_fco_order.py          # Sample 13 — Lệnh điều kiện FCO
+```
+
+### Chạy phiên bản Bất đồng bộ (Async)
+```bash
+python sample_01_auth_async.py
+python sample_02_index_list_async.py
+python sample_03_ohlc_async.py
+python sample_04_securities_async.py
+python sample_05_balance_async.py
+python sample_06_limit_order_async.py
+python sample_07_market_order_async.py
+python sample_08_order_status_async.py
+python sample_09_cancel_order_async.py
+python sample_10_websocket_data_async.py
+python sample_11_websocket_trading_async.py
+python sample_12_ma_cross_auto_trade_async.py
+python sample_13_fco_order_async.py
+```
+
+---
+
 ## auth_helper — Tái sử dụng token (Token Cache)
 **Mục tiêu:** Tránh authenticate lại mỗi lần chạy script bằng cách cache token xuống file.
 
 **Luồng xử lý code:**
 1. Load token từ file `token_cache.json` (nếu có).
-2. Nếu chưa có → gọi `authenticate()` lần đầu và lưu token xuống file.
+2. Nếu chưa có → gọi quy trình Request OTP & Authenticate lần đầu và lưu token xuống file.
 3. Nếu token hết hạn → gọi `refresh()` và lưu token mới.
 4. Nếu token còn hạn → dùng trực tiếp, không gọi API.
 5. Cả hai phiên bản sync (`ensure_auth`) và async (`ensure_auth_async`) đều được hỗ trợ.
@@ -12,15 +67,19 @@
 
 ---
 
-## Sample 1 — Xác thực và lấy Access Token
-**Mục tiêu:** Đăng nhập và lấy token cho toàn bộ API call sau đó.
+## Sample 1 — Xác thực, Yêu cầu & Xác thực OTP (Request OTP & Verify OTP / Smart OTP)
+**Mục tiêu:** Đăng nhập, yêu cầu/xác thực mã OTP (SMS/Email hoặc Smart OTP Push Notification) và lấy token cho toàn bộ API call sau đó.
 
 **Luồng xử lý code:**
 1. Tạo `Config` → `Auth` → gọi `ensure_auth(auth, otp=...)`.
-2. `ensure_auth` load token từ cache, authenticate nếu chưa có, refresh nếu hết hạn.
-3. Auth service trả về `accessToken`, `refreshToken`, `expiresIn` và lưu vào `token_cache.json`.
-4. Mọi request sau đó gắn `Authorization: Bearer <accessToken>`.
-5. Nếu token hết hạn ở lần sau thì tự động refresh, không cần OTP lại.
+2. `ensure_auth` load token từ cache, refresh nếu hết hạn.
+3. Nếu chưa có token hợp lệ:
+   - Gọi `request_otp()` gửi yêu cầu mã OTP (SMS/Email/Smart OTP Push).
+   - Nếu tài khoản dùng Smart OTP Push Notification: Nhận `transactionId` từ response và gọi `ensure_authenticated(transaction_id=...)` để SDK tự động Polling chờ người dùng bấm Approve trên ứng dụng di động SSI.
+   - Nếu tài khoản dùng mã OTP 6 số: Nhập mã OTP và gọi `authenticate(otp=...)`.
+4. Auth service trả về `accessToken`, `refreshToken`, `expiresIn` và lưu vào `token_cache.json`.
+5. Mọi request sau đó gắn `Authorization: Bearer <accessToken>`.
+6. Tự động kiểm tra token bằng cách gọi API lấy danh sách tài khoản.
 
 **File:** `python/sample_01_auth.py` · `python/sample_01_auth_async.py`
 

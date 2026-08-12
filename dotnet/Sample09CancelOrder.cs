@@ -1,9 +1,9 @@
-// Sample 9 — Huy lenh
+// Sample 09 — Hủy lệnh
 // Dung phan khoi luong chua khop cua lenh dang mo.
 
 using SsiSdk;
 
-static class Sample09CancelOrder
+public static class Sample09CancelOrder
 {
     private static readonly HashSet<string> CancellableStatuses = new()
     {

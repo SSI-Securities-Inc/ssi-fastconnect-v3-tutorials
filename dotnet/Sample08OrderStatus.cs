@@ -1,9 +1,9 @@
-// Sample 8 — Kiem tra trang thai lenh
+// Sample 08 — Kiểm tra trạng thái lệnh
 // Theo doi tien trinh khop cua mot lenh cu the.
 
 using SsiSdk;
 
-static class Sample08OrderStatus
+public static class Sample08OrderStatus
 {
     private static readonly HashSet<string> TerminalStatuses = new()
     {

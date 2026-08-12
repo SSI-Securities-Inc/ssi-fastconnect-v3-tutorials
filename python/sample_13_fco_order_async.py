@@ -13,19 +13,11 @@ Thể hiện đầy đủ các loại lệnh điều kiện (Fast Conditional Or
 """
 
 import asyncio
-from ssi_sdk import AsyncAuth, Config, AsyncTrading
+from ssi_sdk import AsyncAuth, AsyncTrading
 from auth_helper import ensure_auth_async
 from ssi_sdk.enums import FCOOperator, OrderSide
+from config import config, ACCOUNT_NO, OTP
 
-config = Config(
-    client_id="<CLIENT_ID>",
-    api_key="<API_KEY>",
-    api_secret="<API_SECRET>",
-    private_key=("<PRIVATE_KEY_CONTENT>"),
-    log_level="DEBUG",
-)
-
-ACCOUNT_NO = "<ACCOUNT_NO>"
 symbol = "SSI"
 from_date = "2026/08/01 00:00:00"
 to_date = "2026/08/30 23:59:59"
@@ -35,7 +27,7 @@ async def main():
     print("=== FASTCONNECT PYTHON SDK (ASYNC) — SAMPLE 13: LỆNH ĐIỀU KIỆN (FCO) ===\n")
 
     async with AsyncAuth(config) as auth:
-        await ensure_auth_async(auth, otp="<OTP>")
+        await ensure_auth_async(auth, otp=OTP)
 
         async with AsyncTrading(auth) as trading:
             # --- 1. Lệnh GTD (Good-Till-Date) ---

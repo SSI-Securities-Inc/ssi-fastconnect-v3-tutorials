@@ -11,16 +11,9 @@ Luồng:
   5. Nếu lịch sử dài thì lặp theo paging/window thời gian
 """
 
-from ssi_sdk import Auth, Data, Config
+from ssi_sdk import Auth, Data
 from auth_helper import ensure_auth
-
-config = Config(
-    client_id="<CLIENT_ID>",
-    api_key="<API_KEY>",
-    api_secret="<API_SECRET>",
-    private_key=("<PRIVATE_KEY_CONTENT>"),
-    log_level="DEBUG",
-)
+from config import config
 
 SYMBOL = "SSI"
 

@@ -13,15 +13,24 @@ Bộ sample minh họa 13 kịch bản sử dụng **FastConnect Node.js SDK** (
 
 ```bash
 cd node
-npm install            # cài SDK qua link local
+npm install            # cài SDK
 
-npm run sample:01      # Auth
-npm run sample:02      # Index list
-# ...
-npm run sample:12      # MA cross auto trade
-npm run sample:13      # Lệnh điều kiện FCO
+# Chạy các sample từ 01 đến 13
+npm run sample:01      # Sample 01 — Auth & OTP
+npm run sample:02      # Sample 02 — Index list
+npm run sample:03      # Sample 03 — OHLC
+npm run sample:04      # Sample 04 — Securities
+npm run sample:05      # Sample 05 — Balance
+npm run sample:06      # Sample 06 — Limit Order
+npm run sample:07      # Sample 07 — Market Order
+npm run sample:08      # Sample 08 — Order Status
+npm run sample:09      # Sample 09 — Cancel Order
+npm run sample:10      # Sample 10 — WebSocket Data
+npm run sample:11      # Sample 11 — WebSocket Trading
+npm run sample:12      # Sample 12 — MA Cross Auto Trade
+npm run sample:13      # Sample 13 — Lệnh điều kiện FCO
 
-# Hoặc chạy trực tiếp
+# Hoặc chạy trực tiếp bằng Node
 node sample_01_auth.js
 ```
 
@@ -34,7 +43,7 @@ Tất cả sample import config từ `config.js` (thay vì nhúng lại trong t�
 |---|---|
 | `clientId` | `<CLIENT_ID>` |
 | `apiKey` / `apiSecret` | nhúng trong `config.js` |
-| `privateKey` | RSA key (Base64 XML) nhúng trong `config.js` — dùng ký lệnh (sample 05–09, 11–13) |
+| `privateKey` | RSA key (Base64 XML) nhúng trong `config.js` — dùng ký lệnh |
 | `ACCOUNT_NO` | `<ACCOUNT_NO>` |
 | `OTP` | `<OTP>` (chỉ dùng ở lần authenticate đầu tiên) |
 
@@ -45,7 +54,7 @@ Tất cả sample import config từ `config.js` (thay vì nhúng lại trong t�
 
 `auth_helper.js` cache token vào `token_cache.json`:
 
-- Lần đầu: `authenticate()` (có thể cần OTP) → lưu token.
+- Lần đầu: `requestOtp()` / `authenticate()` / Polling Smart OTP → lưu token.
 - Lần sau: load từ file, tự `refresh()` nếu hết hạn — không cần OTP lại.
 - `token_cache.json` đã được `.gitignore` (chứa access/refresh token).
 
@@ -55,7 +64,7 @@ Tất cả sample import config từ `config.js` (thay vì nhúng lại trong t�
 
 | # | File | Mô tả | OTP |
 |---|------|-------|-----|
-| 01 | `sample_01_auth.js` | Xác thực, lấy access token | – |
+| 01 | `sample_01_auth.js` | Xác thực, Yêu cầu & Xác thực OTP / Push Smart OTP, lấy token | ✔ |
 | 02 | `sample_02_index_list.js` | Danh sách chỉ số (VN-Index, HNX-Index...) | – |
 | 03 | `sample_03_ohlc.js` | Dữ liệu nến K-line (OHLC) | – |
 | 04 | `sample_04_securities.js` | Danh sách cổ phiếu theo sàn | – |
@@ -69,14 +78,14 @@ Tất cả sample import config từ `config.js` (thay vì nhúng lại trong t�
 | 12 | `sample_12_ma_cross_auto_trade.js` | Tự động giao dịch theo tín hiệu MA5 cắt MA10 | ✔ |
 | 13 | `sample_13_fco_order.js` | Đặt & quản lý lệnh điều kiện FCO (GTD, Stop, Trailing Stop, OCO, Bull Bear) | ✔ |
 
-> Sample 05–09, 11–13 ký lệnh bằng RSA (dùng `privateKey` trong `config.js`). Các sample WebSocket
-> (10–12) tự dừng sau 5 phút hoặc khi nhấn `Ctrl+C`.
+> Sample 04–08, 10–12 ký lệnh bằng RSA (dùng `privateKey` trong `config.js`). Các sample WebSocket
+> (09–11) tự dừng sau 5 phút hoặc khi nhấn `Ctrl+C`.
 
 ## API SDK dùng trong sample
 
 | Class | Mục đích | Dùng ở sample |
 |---|---|---|
 | `Auth` | Xác thực, quản lý token | tất cả |
-| `Data` → `marketData` | Index, OHLC, securities | 02, 03, 04, 12 |
-| `Trading` → `account` / `trading` / `portfolio` | Tài khoản, đặt/hủy lệnh, số dư, sổ lệnh | 01, 05–09, 12 |
-| `Stream` → `streaming` | WebSocket real-time | 10, 11, 12 |
+| `Data` → `marketData` | Index, OHLC, securities | 01, 02, 03, 11 |
+| `Trading` → `account` / `trading` / `portfolio` | Tài khoản, đặt/hủy lệnh, số dư, sổ lệnh | 01, 04–08, 11 |
+| `Stream` → `streaming` | WebSocket real-time | 09, 10, 11 |

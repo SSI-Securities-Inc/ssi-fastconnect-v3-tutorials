@@ -146,7 +146,7 @@ func loadConfig() (*ssi.Config, string, string) {
 }
 
 func main() {
-	config, accountNo, otp := loadConfig()
+	config, _, otp := loadConfig()
 
 	auth := ssi.NewAuth(config)
 	defer auth.Close()

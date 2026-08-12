@@ -1,22 +1,25 @@
 /*
-Sample 1 — Xác thực và lấy Access Token
-=========================================
-Đăng nhập và lấy token cho toàn bộ API call sau đó.
+Sample 1 — Xác thực, Yêu cầu & Xác thực OTP (Request OTP & Verify OTP / Smart OTP)
+==============================================================================
+Đăng nhập, xử lý luồng OTP (Smart OTP Push Polling / OTP 6 số) và lấy token cho toàn bộ API call sau đó.
 
 Luồng:
- 1. Client gửi username/password/appId tới Auth API
- 2. Auth service trả về accessToken, refreshToken, expiresIn
- 3. Lưu token vào session/runtime store
- 4. Mọi request sau đó gắn Authorization: Bearer <accessToken>
- 5. Nếu token hết hạn thì gọi refresh/re-login
+ 1. Tạo Config -> Auth
+ 2. Kiểm tra token cache / refresh token nếu có.
+ 3. Nếu chưa có token: Gọi RequestOTP(), Polling Smart OTP hoặc nhập mã OTP 6 số.
+ 4. Auth service trả về accessToken, refreshToken, expiresIn và lưu vào token_cache.json
+ 5. Mọi request sau đó gắn Authorization: Bearer <accessToken>
+ 6. Xác nhận token bằng cách gọi API lấy thông tin tài khoản.
 */
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/auth"
 	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/ssi"
@@ -75,24 +78,22 @@ func loadConfig() (*ssi.Config, string, string) {
 func main() {
 	config, _, otp := loadConfig()
 
-	auth := ssi.NewAuth(config)
-	defer auth.Close()
+	authObj := ssi.NewAuth(config)
+	defer authObj.Close()
 
-	// --- ensureAuth: load từ file nếu còn hạn, refresh hoặc authenticate nếu cần ---
-	ensureAuth(auth, otp)
+	// --- ensureAuth: load từ file nếu còn hạn, refresh hoặc request/verify OTP nếu cần ---
+	ensureAuth(authObj, otp)
 
-	accessToken := auth.AccessToken()
+	accessToken := authObj.AccessToken()
+	fmt.Println("\n--- Thông tin Token ---")
 	if len(accessToken) > 40 {
 		fmt.Printf("Access Token : %s...\n", accessToken[:40])
 	} else {
 		fmt.Printf("Access Token : %s\n", accessToken)
 	}
 
-	// --- Bước 3: Token đã được SDK lưu tự động, mọi request kế tiếp ---
-	//     sẽ gắn header Authorization: Bearer <accessToken>
-
-	// --- Xác nhận token hoạt động bằng cách gọi API ---
-	t := ssi.NewTrading(auth)
+	// --- Bước 5: Xác nhận token hoạt động bằng cách gọi API ---
+	t := ssi.NewTrading(authObj)
 	accounts, err := t.Account.GetAccountInfo()
 	if err != nil {
 		log.Fatal(err)
@@ -104,7 +105,7 @@ func main() {
 	}
 	// --- Response Summary ---
 	fmt.Println("\n[Response] token_type|expires_at|account_count")
-	fmt.Printf("Bearer|%d|%d\n", auth.TokenManager.Token().ExpiresAt, len(accounts))
+	fmt.Printf("Bearer|%d|%d\n", authObj.TokenManager.Token().ExpiresAt, len(accounts))
 	fmt.Println("[Response:account] account_no|account_type")
 	for _, acc := range accounts {
 		fmt.Printf("%s|%s\n", acc.AccountNo, acc.AccountType)
@@ -150,7 +151,6 @@ func ensureAuth(a *ssi.Auth, otp string) {
 	token := loadToken()
 
 	if token != nil {
-		// Luôn set token từ cache vào manager trước
 		a.TokenManager.SetToken(token)
 
 		if !a.TokenManager.IsTokenExpired() {
@@ -162,7 +162,7 @@ func ensureAuth(a *ssi.Auth, otp string) {
 			fmt.Println("Access token hết hạn, đang refresh...")
 			newToken, err := a.Refresh()
 			if err != nil {
-				log.Printf("Refresh thất bại (%v), đang authenticate lại...", err)
+				log.Printf("Refresh thất bại (%v), tiến hành xác thực lại...", err)
 			} else {
 				saveToken(newToken)
 				fmt.Println("Refresh token thành công.")
@@ -171,11 +171,69 @@ func ensureAuth(a *ssi.Auth, otp string) {
 		}
 	}
 
-	fmt.Println("Không tìm thấy token hợp lệ, đang authenticate...")
-	newToken, err := a.Authenticate(otp)
-	if err != nil {
-		log.Fatalf("Authenticate thất bại: %v", err)
+	fmt.Println("Không tìm thấy token hợp lệ, đang thực hiện quy trình xác thực & OTP...")
+	if otp != "" {
+		newToken, err := a.Authenticate(otp)
+		if err != nil {
+			log.Fatalf("Authenticate thất bại: %v", err)
+		}
+		saveToken(newToken)
+		fmt.Println("Authenticate thành công.")
+		return
 	}
-	saveToken(newToken)
-	fmt.Println("Authenticate thành công.")
+
+	fmt.Println("=== Yêu cầu OTP (Request OTP) ===")
+	otpRes, err := a.RequestOTP()
+	if err != nil {
+		log.Fatalf("Lỗi Request OTP: %v", err)
+	}
+
+	var transactionID string
+	if dataMap, ok := otpRes["data"].(map[string]interface{}); ok {
+		if tid, ok := dataMap["transactionId"].(string); ok {
+			transactionID = tid
+		}
+	}
+	if transactionID == "" {
+		if tid, ok := otpRes["transactionId"].(string); ok {
+			transactionID = tid
+		}
+	}
+
+	if transactionID != "" {
+		fmt.Printf("[Smart OTP] Transaction ID: %s\n", transactionID)
+		fmt.Println("Vui lòng mở ứng dụng SSI trên điện thoại và bấm APPROVE (Xác nhận)...")
+		fmt.Println("SDK đang Polling chờ bạn bấm phê duyệt...")
+
+		accessToken, err := a.EnsureAuthenticated("", transactionID)
+		if err != nil {
+			log.Fatalf("[LỖI/TIMEOUT] Phê duyệt Smart OTP thất bại: %v", err)
+		}
+		if a.TokenManager.Token() != nil {
+			saveToken(a.TokenManager.Token())
+		}
+		fmt.Printf("Smart OTP xác thực thành công. Token: %s...\n", accessToken[:minInt(40, len(accessToken))])
+	} else {
+		fmt.Print("Vui lòng nhập mã OTP 6 số: ")
+		reader := bufio.NewReader(os.Stdin)
+		userOTP, _ := reader.ReadString('\n')
+		userOTP = strings.TrimSpace(userOTP)
+
+		if userOTP != "" {
+			newToken, err := a.Authenticate(userOTP)
+			if err != nil {
+				log.Fatalf("Lỗi xác thực OTP: %v", err)
+			}
+			saveToken(newToken)
+			fmt.Println("Authenticate OTP thành công.")
+		}
+	}
 }
+
+func minInt(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+

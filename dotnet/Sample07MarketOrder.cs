@@ -1,9 +1,10 @@
-// Sample 7 — Dat lenh Market (MP)
+// Sample 07 — Đặt lệnh Market
 // Khop lenh nhanh theo gia thi truong hien tai.
 
 using SsiSdk;
+using SsiSdk.Models;
 
-static class Sample07MarketOrder
+public static class Sample07MarketOrder
 {
     public static async Task RunAsync()
     {

@@ -1,5 +1,5 @@
 """
-Sample 10a (Async) — WebSocket dữ liệu thị trường real-time
+Sample 10 (Async) — WebSocket dữ liệu thị trường real-time
 =============================================================
 Nhận tick data (giá khớp, bảng giá, room nước ngoài) tức thời (phiên bản async).
 
@@ -13,21 +13,14 @@ Luồng:
 
 import asyncio
 
-from ssi_sdk import AsyncAuth, AsyncStream, Config
+from ssi_sdk import AsyncAuth, AsyncStream
 from auth_helper import ensure_auth_async
+from config import config
 from ssi_sdk.models.streaming import (
     TradeMessage,
     QuoteMessage,
     ForeignRoomMessage,
     HeartbeatMessage,
-)
-
-config = Config(
-    client_id="<CLIENT_ID>",
-    api_key="<API_KEY>",
-    api_secret="<API_SECRET>",
-    private_key=("<PRIVATE_KEY_CONTENT>"),
-    log_level="DEBUG",
 )
 
 

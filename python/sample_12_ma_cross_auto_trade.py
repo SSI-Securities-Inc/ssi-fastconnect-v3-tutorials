@@ -19,20 +19,11 @@ import time
 from collections import deque
 from dataclasses import dataclass
 
-from ssi_sdk import Auth, Data, Stream, Trading, Config
+from ssi_sdk import Auth, Data, Stream, Trading
 from ssi_sdk.enums import OrderSide, OrderStatus
 from ssi_sdk.models.streaming import TradeMessage, OrderStatusMessage, HeartbeatMessage
 from auth_helper import ensure_auth
-
-config = Config(
-    client_id="<CLIENT_ID>",
-    api_key="<API_KEY>",
-    api_secret="<API_SECRET>",
-    private_key=("<PRIVATE_KEY_CONTENT>"),
-    log_level="DEBUG",
-)
-
-ACCOUNT_NO = "<ACCOUNT_NO>"
+from config import config, ACCOUNT_NO, OTP
 SYMBOL = "SSI"
 MA_FAST = 5
 MA_SLOW = 10
@@ -141,7 +132,7 @@ def detect_cross(bars: list[Bar], fast: int, slow: int) -> str | None:
 # ---------------------------------------------------------------------------
 
 with Auth(config) as auth:
-    ensure_auth(auth, otp="<OTP>")
+    ensure_auth(auth, otp=OTP)
 
     # ===== Bước 1: Seed lịch sử 5m =====
     builder = BarBuilder(BAR_SECONDS)

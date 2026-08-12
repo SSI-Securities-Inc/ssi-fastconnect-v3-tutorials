@@ -1,5 +1,5 @@
 """
-Sample 10a — WebSocket dữ liệu thị trường real-time
+Sample 10 — WebSocket dữ liệu thị trường real-time
 =====================================================
 Nhận tick data (giá khớp, bảng giá, room nước ngoài) tức thời.
 
@@ -11,21 +11,14 @@ Luồng:
   5. Khi mất kết nối, chạy cơ chế reconnect exponential backoff
 """
 
-from ssi_sdk import Auth, Stream, Config
+from ssi_sdk import Auth, Stream
 from auth_helper import ensure_auth
+from config import config
 from ssi_sdk.models.streaming import (
     TradeMessage,
     QuoteMessage,
     ForeignRoomMessage,
     HeartbeatMessage,
-)
-
-config = Config(
-    client_id="<CLIENT_ID>",
-    api_key="<API_KEY>",
-    api_secret="<API_SECRET>",
-    private_key=("<PRIVATE_KEY_CONTENT>"),
-    log_level="DEBUG",
 )
 
 # --- Callback xử lý dữ liệu thị trường ---

@@ -1,10 +1,10 @@
-// Sample 11 — WebSocket trading real-time (trang thai lenh & danh muc)
-// Nhan cap nhat tuc thoi ve lenh khop va danh muc tai khoan.
+// Sample 11 — WebSocket trading real-time (trạng thái lệnh & danh mục)
+// Nhận cập nhật tức thời về lệnh khớp và danh mục tài khoản.
 
 using SsiSdk;
 using SsiSdk.Models;
 
-static class Sample11WebsocketTrading
+public static class Sample11WebsocketTrading
 {
     public static async Task RunAsync()
     {

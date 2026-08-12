@@ -1,10 +1,10 @@
-// Sample 10 — WebSocket du lieu thi truong real-time
-// Nhan tick data (gia khop, bang gia, room nuoc ngoai) tuc thoi.
+// Sample 10 — WebSocket dữ liệu thị trường real-time
+// Nhận tick data (giá khớp, bảng giá, room nước ngoài) tức thời.
 
 using SsiSdk;
 using SsiSdk.Models;
 
-static class Sample10WebsocketData
+public static class Sample10WebsocketData
 {
     public static async Task RunAsync()
     {

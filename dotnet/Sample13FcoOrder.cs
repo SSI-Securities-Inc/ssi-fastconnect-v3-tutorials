@@ -11,7 +11,7 @@
 
 using SsiSdk;
 
-static class Sample13FcoOrder
+public static class Sample13FcoOrder
 {
     public static async Task RunAsync()
     {

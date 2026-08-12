@@ -1,5 +1,5 @@
 """
-Sample 10b (Async) — WebSocket trading real-time (trạng thái lệnh & danh mục)
+Sample 11 (Async) — WebSocket trading real-time (trạng thái lệnh & danh mục)
 ===============================================================================
 Nhận cập nhật tức thời về lệnh khớp và danh mục tài khoản (phiên bản async).
 
@@ -13,23 +13,14 @@ Luồng:
 
 import asyncio
 
-from ssi_sdk import AsyncAuth, AsyncStream, Config
+from ssi_sdk import AsyncAuth, AsyncStream
 from auth_helper import ensure_auth_async
+from config import config, ACCOUNT_NO, OTP
 from ssi_sdk.models.streaming import (
     OrderStatusMessage,
     PortfolioMessage,
     HeartbeatMessage,
 )
-
-config = Config(
-    client_id="<CLIENT_ID>",
-    api_key="<API_KEY>",
-    api_secret="<API_SECRET>",
-    private_key=("<PRIVATE_KEY_CONTENT>"),
-    log_level="DEBUG",
-)
-
-ACCOUNT_NO = "<ACCOUNT_NO>"
 
 # --- Callback xử lý sự kiện trading ---
 def on_trading_event(msg):

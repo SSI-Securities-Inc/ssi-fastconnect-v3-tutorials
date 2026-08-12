@@ -1,9 +1,9 @@
-// Sample 2 — Lay danh sach chi so thi truong (Index)
-// Hien thi VN-Index, HNX-Index... tren dashboard.
+// Sample 02 — Lấy danh sách chỉ số thị trường (Index)
+// Hiển thị VN-Index, HNX-Index... trên dashboard.
 
 using SsiSdk;
 
-static class Sample02IndexList
+public static class Sample02IndexList
 {
     public static async Task RunAsync()
     {

@@ -1,9 +1,10 @@
-// Sample 3 — Lay du lieu K-line (OHLC)
+// Sample 03 — Lấy dữ liệu K-line (OHLC)
 // Cung cap du lieu nen cho bieu do va phan tich ky thuat.
 
 using SsiSdk;
+using SsiSdk.Models;
 
-static class Sample03Ohlc
+public static class Sample03Ohlc
 {
     private const string Symbol = "SSI";
 

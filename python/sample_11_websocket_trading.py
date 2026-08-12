@@ -1,5 +1,5 @@
 """
-Sample 10b — WebSocket trading real-time (trạng thái lệnh & danh mục)
+Sample 11 — WebSocket trading real-time (trạng thái lệnh & danh mục)
 ======================================================================
 Nhận cập nhật tức thời về lệnh khớp và danh mục tài khoản.
 
@@ -11,23 +11,14 @@ Luồng:
   5. Khi mất kết nối, chạy cơ chế reconnect exponential backoff
 """
 
-from ssi_sdk import Auth, Stream, Config
+from ssi_sdk import Auth, Stream
 from auth_helper import ensure_auth
+from config import config, ACCOUNT_NO, OTP
 from ssi_sdk.models.streaming import (
     OrderStatusMessage,
     PortfolioMessage,
     HeartbeatMessage,
 )
-
-config = Config(
-    client_id="<CLIENT_ID>",
-    api_key="<API_KEY>",
-    api_secret="<API_SECRET>",
-    private_key=("<PRIVATE_KEY_CONTENT>"),
-    log_level="DEBUG",
-)
-
-ACCOUNT_NO = "<ACCOUNT_NO>"
 
 # --- Callback xử lý sự kiện trading ---
 def on_trading_event(msg):

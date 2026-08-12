@@ -1,9 +1,9 @@
-// Sample 5 — Lay so du tai khoan (Account Balance)
+// Sample 05 — Lấy số dư tài khoản (Account Balance)
 // Kiem tra kha nang giao dich truoc khi dat lenh.
 
 using SsiSdk;
 
-static class Sample05Balance
+public static class Sample05Balance
 {
     public static async Task RunAsync()
     {

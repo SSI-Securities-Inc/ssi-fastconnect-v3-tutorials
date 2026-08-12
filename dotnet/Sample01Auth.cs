@@ -1,5 +1,5 @@
-// Sample 1 — Xac thuc va lay Access Token
-// Dang nhap, lay token, kiem tra hoat dong bang cach goi API account info.
+// Sample 1 — Xác thực, Yêu cầu & Xác thực OTP (Request OTP & Verify OTP / Smart OTP)
+// Đăng nhập, xử lý luồng OTP (Smart OTP Push Polling / OTP 6 số) và kiểm tra tài khoản qua Trading API.
 
 using SsiSdk;
 
@@ -10,26 +10,25 @@ static class Sample01Auth
         var config = SampleConfig.Create();
         using var auth = new AuthClient(config);
 
-        // --- Buoc 1-2: Xac thuc, nhan accessToken + refreshToken ---
+        // --- Bước 1-3: Xác thực + Yêu cầu & Xác thực OTP / Smart OTP ---
         await AuthHelper.EnsureAuthAsync(auth);
 
         var accessToken = auth.AccessToken;
-        Console.WriteLine($"Access Token : {accessToken[..Math.Min(40, accessToken.Length)]}...");
+        Console.WriteLine($"\n--- Thông tin Token ---");
+        Console.WriteLine($"Access Token : {(string.IsNullOrEmpty(accessToken) ? "N/A" : accessToken[..Math.Min(40, accessToken.Length)])}...");
 
-        // --- Buoc 3: Token da duoc SDK luu tu dong ---
-
-        // --- Buoc 4: Kiem tra token het han & refresh ---
+        // --- Bước 4: Kiểm tra token hết hạn & refresh ---
         if (auth.TokenManager.IsTokenExpired)
         {
-            Console.WriteLine("\nToken het han, dang refresh...");
+            Console.WriteLine("\nToken hết hạn, đang refresh...");
             var newToken = await auth.RefreshAsync();
-            Console.WriteLine($"Token moi    : {newToken.AccessToken[..40]}...");
+            Console.WriteLine($"Token mới    : {newToken.AccessToken[..Math.Min(40, newToken.AccessToken.Length)]}...");
         }
 
-        // --- Xac nhan token hoat dong bang cach goi API ---
+        // --- Bước 5: Xác nhận token hoạt động bằng cách gọi API ---
         var trading = new TradingClient(auth);
         var accounts = await trading.Account.GetAccountInfoAsync();
-        Console.WriteLine($"\nXac thuc thanh cong! Tim thay {accounts.Count} tai khoan:");
+        Console.WriteLine($"\nXác thực thành công! Tìm thấy {accounts.Count} tài khoản:");
         foreach (var acc in accounts)
         {
             Console.WriteLine($"  - {acc.AccountNo} ({acc.AccountType})");
@@ -45,3 +44,4 @@ static class Sample01Auth
         }
     }
 }
+

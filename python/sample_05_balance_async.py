@@ -13,18 +13,9 @@ Luồng:
 
 import asyncio
 
-from ssi_sdk import AsyncAuth, AsyncTrading, Config
+from ssi_sdk import AsyncAuth, AsyncTrading
 from auth_helper import ensure_auth_async
-
-config = Config(
-    client_id="<CLIENT_ID>",
-    api_key="<API_KEY>",
-    api_secret="<API_SECRET>",
-    private_key=("<PRIVATE_KEY_CONTENT>"),
-    log_level="DEBUG",
-)
-
-ACCOUNT_NO = "<ACCOUNT_NO>"
+from config import config, ACCOUNT_NO, OTP
 
 
 async def main():
