@@ -49,135 +49,187 @@ Dưới đây là chi tiết các mẫu kiểm thử tương ứng theo từng n
 
 | Stt | Tính năng | Tệp nguồn Go | Tệp nguồn Python | Tệp nguồn Node.js | Tệp nguồn .NET | Mô tả chi tiết |
 |---|---|---|---|---|---|---|
-| **01** | Xác thực & Lấy Token | `sample_01_auth.go` | `sample_01_auth.py`<br>`sample_01_auth_async.py` | `sample_01_auth.js` | `Sample01Auth.cs` | Thiết lập kết nối ban đầu, lấy token và ghi nhận tài khoản khả dụng. |
-| **02** | Yêu cầu & Xác thực OTP | `sample_02_otp.go` | `sample_02_otp.py`<br>`sample_02_otp_async.py` | `sample_02_otp.js` | `Sample02Otp.cs` | Gửi yêu cầu mã OTP (SMS/Email) và Polling phê duyệt Smart OTP Push Notification. |
-| **03** | Chỉ số thị trường | `sample_03_index_list.go` | `sample_03_index_list.py`<br>`sample_03_index_list_async.py` | `sample_03_index_list.js` | `Sample03IndexList.cs` | Lấy danh sách chỉ số (VN-Index, HNX-Index...) và chi tiết từng chỉ số theo sàn. |
-| **04** | Dữ liệu nến (OHLC) | `sample_04_ohlc.go` | `sample_04_ohlc.py`<br>`sample_04_ohlc_async.py` | `sample_04_ohlc.js` | `Sample04Ohlc.cs` | Lấy mảng dữ liệu giá (Mở, Cao, Thấp, Đóng, Khối lượng) theo các khung thời gian linh hoạt (1m, 5m, 1h, 1d...). |
-| **05** | Danh sách cổ phiếu | `sample_05_securities.go` | `sample_05_securities.py`<br>`sample_05_securities_async.py` | `sample_05_securities.js` | `Sample05Securities.cs` | Truy vấn thông tin chi tiết của một mã hoặc danh sách mã theo sàn giao dịch & Master Data. |
-| **06** | Số dư tài khoản | `sample_06_balance.go` | `sample_06_balance.py`<br>`sample_06_balance_async.py` | `sample_06_balance.js` | `Sample06Balance.cs` | Kiểm tra số dư khả dụng, tiền ký quỹ cho tiểu khoản thường (equity) hoặc phái sinh (derivative). |
-| **07** | Đặt lệnh giới hạn | `sample_07_limit_order.go` | `sample_07_limit_order.py`<br>`sample_07_limit_order_async.py` | `sample_07_limit_order.js` | `Sample07LimitOrder.cs` | Gửi lệnh mua hoặc bán cổ phiếu với mức giá giới hạn (LO) mong muốn. |
-| **08** | Đặt lệnh thị trường | `sample_08_market_order.go` | `sample_08_market_order.py`<br>`sample_08_market_order_async.py` | `sample_08_market_order.js` | `Sample08MarketOrder.cs` | Gửi lệnh mua hoặc bán theo giá thị trường (MP/MTL...) nhằm ưu tiên khớp ngay lập tức. |
-| **09** | Trạng thái lệnh | `sample_09_order_status.go` | `sample_09_order_status.py`<br>`sample_09_order_status_async.py` | `sample_09_order_status.js` | `Sample09OrderStatus.cs` | Kiểm tra lịch sử đặt lệnh trong ngày hoặc quá khứ của một tài khoản cụ thể. |
-| **10** | Hủy lệnh | `sample_10_cancel_order.go` | `sample_10_cancel_order.py`<br>`sample_10_cancel_order_async.py` | `sample_10_cancel_order.js` | `Sample10CancelOrder.cs` | Hủy phần khối lượng chưa khớp của lệnh giới hạn đang ở trạng thái chờ khớp. |
-| **11** | WebSocket Thị trường | `sample_11_websocket_data.go` | `sample_11_websocket_data.py`<br>`sample_11_websocket_data_async.py` | `sample_11_websocket_data.js` | `Sample11WebsocketData.cs` | Nhận luồng dữ liệu thời gian thực (giá khớp, thông tin bảng giá, room khối ngoại) bằng kết nối WebSocket. |
-| **12** | WebSocket Giao dịch | `sample_12_websocket_trading.go` | `sample_12_websocket_trading.py`<br>`sample_12_websocket_trading_async.py` | `sample_12_websocket_trading.js` | `Sample12WebsocketTrading.cs` | Lắng nghe các thay đổi tức thời về trạng thái khớp lệnh và danh mục tài sản của người dùng. |
-| **13** | Chiến thuật MA Cross | `sample_13_ma_cross_auto_trade.go` | `sample_13_ma_cross_auto_trade.py`<br>`sample_13_ma_cross_auto_trade_async.py` | `sample_13_ma_cross_auto_trade.js` | `Sample13MaCrossAutoTrade.cs` | Mô phỏng hệ thống tự động hóa hoàn chỉnh: Tính toán MA5/MA10, tạo tín hiệu giao dịch, kiểm tra điều kiện rủi ro, đặt lệnh và theo dõi. |
-| **14** | Lệnh điều kiện (FCO) | `sample_14_fco_order.go` | `sample_14_fco_order.py`<br>`sample_14_fco_order_async.py` | `sample_14_fco_order.js` | `Sample14FcoOrder.cs` | Đặt và quản lý toàn bộ các loại lệnh điều kiện FCO (GTD, Stop, Stop Limit, Trailing Stop, Trailing Stop Limit, OCO, Bull Bear, truy vấn & hủy lệnh FCO). |
+| **01** | Xác thực & OTP | `sample_01_auth.go` | `sample_01_auth.py`<br>`sample_01_auth_async.py` | `sample_01_auth.js` | `Sample01Auth.cs` | Thiết lập kết nối ban đầu, yêu cầu/xác thực OTP (SMS/Email hoặc Smart OTP Push Polling), lấy token và ghi nhận tài khoản khả dụng. |
+| **02** | Chỉ số thị trường | `sample_02_index_list.go` | `sample_02_index_list.py`<br>`sample_02_index_list_async.py` | `sample_02_index_list.js` | `Sample02IndexList.cs` | Lấy danh sách chỉ số (VN-Index, HNX-Index...) và chi tiết từng chỉ số theo sàn. |
+| **03** | Dữ liệu nến (OHLC) | `sample_03_ohlc.go` | `sample_03_ohlc.py`<br>`sample_03_ohlc_async.py` | `sample_03_ohlc.js` | `Sample03Ohlc.cs` | Lấy mảng dữ liệu giá (Mở, Cao, Thấp, Đóng, Khối lượng) theo các khung thời gian linh hoạt (1m, 5m, 1h, 1d...). |
+| **04** | Danh sách cổ phiếu | `sample_04_securities.go` | `sample_04_securities.py`<br>`sample_04_securities_async.py` | `sample_04_securities.js` | `Sample04Securities.cs` | Truy vấn thông tin chi tiết của một mã hoặc danh sách mã theo sàn giao dịch & Master Data. |
+| **05** | Số dư tài khoản | `sample_05_balance.go` | `sample_05_balance.py`<br>`sample_05_balance_async.py` | `sample_05_balance.js` | `Sample05Balance.cs` | Kiểm tra số dư khả dụng, tiền ký quỹ cho tiểu khoản thường (equity) hoặc phái sinh (derivative). |
+| **06** | Đặt lệnh giới hạn | `sample_06_limit_order.go` | `sample_06_limit_order.py`<br>`sample_06_limit_order_async.py` | `sample_06_limit_order.js` | `Sample06LimitOrder.cs` | Gửi lệnh mua hoặc bán cổ phiếu với mức giá giới hạn (LO) mong muốn. |
+| **07** | Đặt lệnh thị trường | `sample_07_market_order.go` | `sample_07_market_order.py`<br>`sample_07_market_order_async.py` | `sample_07_market_order.js` | `Sample07MarketOrder.cs` | Gửi lệnh mua hoặc bán theo giá thị trường (MP/MTL...) nhằm ưu tiên khớp ngay lập tức. |
+| **08** | Trạng thái lệnh | `sample_08_order_status.go` | `sample_08_order_status.py`<br>`sample_08_order_status_async.py` | `sample_08_order_status.js` | `Sample08OrderStatus.cs` | Kiểm tra lịch sử đặt lệnh trong ngày hoặc quá khứ của một tài khoản cụ thể. |
+| **09** | Hủy lệnh | `sample_09_cancel_order.go` | `sample_09_cancel_order.py`<br>`sample_09_cancel_order_async.py` | `sample_09_cancel_order.js` | `Sample09CancelOrder.cs` | Hủy phần khối lượng chưa khớp của lệnh giới hạn đang ở trạng thái chờ khớp. |
+| **10** | WebSocket Thị trường | `sample_10_websocket_data.go` | `sample_10_websocket_data.py`<br>`sample_10_websocket_data_async.py` | `sample_10_websocket_data.js` | `Sample10WebsocketData.cs` | Nhận luồng dữ liệu thời gian thực (giá khớp, thông tin bảng giá, room khối ngoại) bằng kết nối WebSocket. |
+| **11** | WebSocket Giao dịch | `sample_11_websocket_trading.go` | `sample_11_websocket_trading.py`<br>`sample_11_websocket_trading_async.py` | `sample_11_websocket_trading.js` | `Sample11WebsocketTrading.cs` | Lắng nghe các thay đổi tức thời về trạng thái khớp lệnh và danh mục tài sản của người dùng. |
+| **12** | Chiến thuật MA Cross | `sample_12_ma_cross_auto_trade.go` | `sample_12_ma_cross_auto_trade.py`<br>`sample_12_ma_cross_auto_trade_async.py` | `sample_12_ma_cross_auto_trade.js` | `Sample12MaCrossAutoTrade.cs` | Mô phỏng hệ thống tự động hóa hoàn chỉnh: Tính toán MA5/MA10, tạo tín hiệu giao dịch, kiểm tra điều kiện rủi ro, đặt lệnh và theo dõi. |
+| **13** | Lệnh điều kiện (FCO) | `sample_13_fco_order.go` | `sample_13_fco_order.py`<br>`sample_13_fco_order_async.py` | `sample_13_fco_order.js` | `Sample13FcoOrder.cs` | Đặt và quản lý toàn bộ các loại lệnh điều kiện FCO (GTD, Stop, Stop Limit, Trailing Stop, Trailing Stop Limit, OCO, Bull Bear, truy vấn & hủy lệnh FCO). |
 
 ---
 
 ## Hướng dẫn cấu hình
 
-Trước khi vận hành bất kỳ mẫu kiểm thử nào, bạn cần điền thông tin tài khoản được cấp từ hệ thống SSI FastConnect vào phần cấu hình của mã nguồn.
+Trước khi vận hành bất kỳ mẫu kiểm thử nào, bạn cần điền thông tin tài khoản được cấp từ hệ thống SSI FastConnect vào phần cấu hình.
 
-### Tham số cấu hình cần thiết
-* **`client_id`**: Định danh của khách hàng đăng ký sử dụng dịch vụ API.
-* **`api_key`**: Khóa truy cập được cấp bởi cổng thông tin phát triển SSI.
-* **`api_secret`**: Khóa bí mật đi kèm để ký các yêu cầu API.
-* **`private_key`**: Đường dẫn tệp khóa riêng tư hoặc nội dung khóa riêng tư định dạng PEM dùng để ký số xác thực.
+### Cách 1: Sử dụng tệp `config.json` chung (Khuyến nghị)
+Tất cả các ngôn ngữ (Python, .NET, Node.js, Go) đều được thiết lập tự động đọc thông số từ tệp `config.json` đặt tại **thư mục gốc** của dự án (`ssi-fastconnect-v3-tutorials/config.json`).
+
+1. Tạo tệp `config.json` bằng cách copy từ tệp mẫu `config.example.json`:
+   ```bash
+   cp config.example.json config.json
+   ```
+2. Mở `config.json` và thay đổi các tham số tương ứng:
+   ```json
+   {
+     "client_id": "YOUR_CLIENT_ID",
+     "api_key": "YOUR_API_KEY",
+     "api_secret": "YOUR_API_SECRET",
+     "private_key": "-----BEGIN RSA PRIVATE KEY-----\nYOUR_PRIVATE_KEY_HERE\n-----END RSA PRIVATE KEY-----",
+     "equity_account": "YOUR_EQUITY_ACCOUNT_NO",
+     "derivative_account": "YOUR_DERIVATIVE_ACCOUNT_NO",
+     "otp": "YOUR_OTP_CODE",
+     "log_level": "INFO"
+   }
+   ```
+
+### Cách 2: Cấu hình trực tiếp trong từng ngôn ngữ
+Nếu không dùng `config.json`, bạn có thể cập nhật tham số trực tiếp trong file config của từng ngôn ngữ:
+* **Python:** Cập nhật `python/config.py`
+* **.NET:** Cập nhật `dotnet/SampleConfig.cs`
+* **Node.js:** Cập nhật `node/config.js`
+* **Go:** Cập nhật hàm `loadConfig()` hoặc struct cấu hình trong các file `go/sample_*.go`
+
+### Giải thích các tham số cấu hình
+* **`client_id`**: Định danh khách hàng đăng ký dịch vụ FastConnect API.
+* **`api_key`**: Khóa API được cấp từ SSI Developer Portal.
+* **`api_secret`**: Secret key dùng để ký hoặc xác thực thông điệp API.
+* **`private_key`**: Chuỗi RSA Private Key (định dạng PEM hoặc XML Base64) dùng để ký giao dịch/lệnh.
+* **`equity_account`**: Số tài khoản chứng khoán cơ sở (ví dụ: `123C456789`).
+* **`derivative_account`**: Số tài khoản phái sinh (nếu giao dịch phái sinh).
+* **`otp`**: Mã OTP 6 số (chỉ sử dụng cho lần đầu đăng nhập nếu tài khoản không dùng Smart OTP Push Notification).
 
 > [!WARNING]
-> Không chia sẻ hoặc đưa các thông tin bí mật cấu hình (`api_secret`, `private_key`) lên các kho mã nguồn công khai như GitHub để tránh rủi ro mất an toàn tài khoản.
+> File `config.json` và `token_cache.json` đã được đưa vào `.gitignore`. Không bao giờ commit các thông tin bí mật cấu hình (`api_secret`, `private_key`) lên kho mã nguồn công khai.
 
 ---
 
-## Cách chạy mẫu Python
+## Cách chạy từng mẫu kiểm thử (Samples)
 
-### Yêu cầu hệ thống
-* Python phiên bản `3.9` trở lên.
-
-### Cài đặt SDK
-Cài đặt thư viện `ssi-sdk` chính thức từ PyPI:
+### 1. Python
 ```bash
-pip install ssi-sdk
+cd python
+
+# Sample 01 — Xác thực & OTP (SMS/Email / Push Smart OTP)
+python sample_01_auth.py             # Phiên bản đồng bộ
+python sample_01_auth_async.py       # Phiên bản bất đồng bộ
+
+# Sample 02 — Chỉ số thị trường (Index)
+python sample_02_index_list.py
+python sample_02_index_list_async.py
+
+# Sample 03 — Dữ liệu nến (OHLC)
+python sample_03_ohlc.py
+python sample_03_ohlc_async.py
+
+# Sample 04 — Danh sách cổ phiếu
+python sample_04_securities.py
+python sample_04_securities_async.py
+
+# Sample 05 — Số dư tài khoản (Account Balance)
+python sample_05_balance.py
+python sample_05_balance_async.py
+
+# Sample 06 — Đặt lệnh Limit (LO)
+python sample_06_limit_order.py
+python sample_06_limit_order_async.py
+
+# Sample 07 — Đặt lệnh Market (MP)
+python sample_07_market_order.py
+python sample_07_market_order_async.py
+
+# Sample 08 — Trạng thái lệnh
+python sample_08_order_status.py
+python sample_08_order_status_async.py
+
+# Sample 09 — Hủy lệnh
+python sample_09_cancel_order.py
+python sample_09_cancel_order_async.py
+
+# Sample 10 — WebSocket dữ liệu thị trường real-time
+python sample_10_websocket_data.py
+python sample_10_websocket_data_async.py
+
+# Sample 11 — WebSocket trading real-time
+python sample_11_websocket_trading.py
+python sample_11_websocket_trading_async.py
+
+# Sample 12 — Tự động giao dịch theo MA Cross
+python sample_12_ma_cross_auto_trade.py
+python sample_12_ma_cross_auto_trade_async.py
+
+# Sample 13 — Đặt & quản lý lệnh điều kiện FCO
+python sample_13_fco_order.py
+python sample_13_fco_order_async.py
 ```
 
-### Các bước thực hiện
-1. Di chuyển vào thư mục Python:
-   ```bash
-   cd python
-   ```
-2. Cập nhật thông tin xác thực tại tệp cấu hình hoặc trực tiếp trong từng file sample.
-3. Chạy thử nghiệm các tệp mẫu (Ví dụ chạy phiên bản đồng bộ hoặc bất đồng bộ của Sample 01):
-   ```bash
-   # Phiên bản đồng bộ
-   python sample_01_auth.py
+### 2. .NET
+```bash
+cd dotnet
 
-   # Phiên bản bất đồng bộ
-   python sample_01_auth_async.py
-   ```
+dotnet run -- 01    # Sample 01 — Xác thực & OTP
+dotnet run -- 02    # Sample 02 — Chỉ số thị trường
+dotnet run -- 03    # Sample 03 — Dữ liệu nến (OHLC)
+dotnet run -- 04    # Sample 04 — Danh sách cổ phiếu
+dotnet run -- 05    # Sample 05 — Số dư tài khoản
+dotnet run -- 06    # Sample 06 — Đặt lệnh Limit
+dotnet run -- 07    # Sample 07 — Đặt lệnh Market
+dotnet run -- 08    # Sample 08 — Trạng thái lệnh
+dotnet run -- 09    # Sample 09 — Hủy lệnh
+dotnet run -- 10    # Sample 10 — WebSocket Thị trường
+dotnet run -- 11    # Sample 11 — WebSocket Giao dịch
+dotnet run -- 12    # Sample 12 — Chiến thuật MA Cross
+dotnet run -- 13    # Sample 13 — Lệnh điều kiện FCO
+```
 
----
-
-## Cách chạy mẫu Go
-
-### Yêu cầu hệ thống
-* Go phiên bản `1.22` trở lên.
-* Module `github.com/SSI-Securities-Inc/ssi-sdk-go/v3` (được thiết lập liên kết cục bộ tới thư mục SDK song song `../ssi-sdk-go`).
-
-### Các bước thực hiện
-1. Thực hiện tải về các thư viện phụ thuộc và thiết lập module:
-   ```bash
-   go mod tidy
-   ```
-2. Chạy thử nghiệm các tệp mẫu mong muốn trực tiếp tại thư mục hiện tại:
-   ```bash
-   # Ví dụ chạy Sample 01 xác thực tài khoản
-   go run sample_01_auth.go
-
-   # Ví dụ chạy Sample 12 chiến thuật giao dịch tự động
-   go run sample_12_ma_cross_auto_trade.go
-   ```
-
----
-
-## Cách chạy mẫu Node.js
-
-### Yêu cầu hệ thống
-* Node.js phiên bản `18` trở lên.
-
-### Cài đặt SDK
-Cài đặt thư viện `@ssi.developer/ssi-sdk` (liên kết cục bộ tới thư mục SDK song song `../sdk/ssi-sdk-node`):
+### 3. Node.js
 ```bash
 cd node
 npm install
+
+npm run sample:01   # Sample 01 — Xác thực & OTP
+npm run sample:02   # Sample 02 — Chỉ số thị trường
+npm run sample:03   # Sample 03 — Dữ liệu nến (OHLC)
+npm run sample:04   # Sample 04 — Danh sách cổ phiếu
+npm run sample:05   # Sample 05 — Số dư tài khoản
+npm run sample:06   # Sample 06 — Đặt lệnh Limit
+npm run sample:07   # Sample 07 — Đặt lệnh Market
+npm run sample:08   # Sample 08 — Trạng thái lệnh
+npm run sample:09   # Sample 09 — Hủy lệnh
+npm run sample:10   # Sample 10 — WebSocket Thị trường
+npm run sample:11   # Sample 11 — WebSocket Giao dịch
+npm run sample:12   # Sample 12 — Chiến thuật MA Cross
+npm run sample:13   # Sample 13 — Lệnh điều kiện FCO
+
+# Hoặc chạy trực tiếp bằng Node:
+node sample_01_auth.js
 ```
 
-### Các bước thực hiện
-1. Cập nhật thông tin xác thực tại `config.js` hoặc trực tiếp trong từng file sample.
-2. Chạy thử nghiệm các tệp mẫu mong muốn:
-   ```bash
-   # Ví dụ chạy Sample 01
-   npm run sample:01
+### 4. Go
+```bash
+cd go
 
-   # Hoặc chạy trực tiếp
-   node sample_01_auth.js
-   ```
-
----
-
-## Cách chạy mẫu .NET
-
-### Yêu cầu hệ thống
-* .NET SDK phiên bản `8.0` trở lên.
-
-### Cài đặt SDK
-Dự án được cấu hình tham chiếu trực tiếp tới SDK cục bộ thông qua `FastConnectSamples.csproj`.
-
-### Các bước thực hiện
-1. Di chuyển vào thư mục dotnet:
-   ```bash
-   cd dotnet
-   ```
-2. Cập nhật thông tin xác thực tại `SampleConfig.cs`.
-3. Chạy thử nghiệm các tệp mẫu bằng cách truyền số thứ tự của Sample (01 đến 12):
-   ```bash
-   # Ví dụ chạy Sample 01
-   dotnet run -- 01
-
-   # Ví dụ chạy Sample 12
-   dotnet run -- 12
-   ```
+go run sample_01_auth.go                # Sample 01 — Xác thực & OTP
+go run sample_02_index_list.go          # Sample 02 — Chỉ số thị trường
+go run sample_03_ohlc.go                # Sample 03 — Dữ liệu nến (OHLC)
+go run sample_04_securities.go          # Sample 04 — Danh sách cổ phiếu
+go run sample_05_balance.go             # Sample 05 — Số dư tài khoản
+go run sample_06_limit_order.go         # Sample 06 — Đặt lệnh Limit
+go run sample_07_market_order.go        # Sample 07 — Đặt lệnh Market
+go run sample_08_order_status.go        # Sample 08 — Trạng thái lệnh
+go run sample_09_cancel_order.go        # Sample 09 — Hủy lệnh
+go run sample_10_websocket_data.go      # Sample 10 — WebSocket Thị trường
+go run sample_11_websocket_trading.go   # Sample 11 — WebSocket Giao dịch
+go run sample_12_ma_cross_auto_trade.go # Sample 12 — Chiến thuật MA Cross
+go run sample_13_fco_order.go          # Sample 13 — Lệnh điều kiện FCO
+```
 
 ---
 
@@ -201,3 +253,4 @@ Luồng xử lý tự động liên tục được kiểm soát bởi chiến th
 * **Cơ chế tái kết nối (Reconnect):** Các tệp mẫu WebSocket (`sample_10`, `sample_11`) tích hợp sẵn cơ chế Exponential Backoff để tự động thiết lập lại kết nối khi đường truyền mạng gặp sự cố ngắt quãng.
 * **Thời gian hết hạn của token:** Access Token mặc định có thời hạn sử dụng hữu hạn. Sử dụng `auth_helper` sẽ giúp mã nguồn của bạn hoạt động ổn định trong thời gian dài mà không bị gián đoạn do lỗi hết hạn phiên làm việc.
 * **Quản lý rủi ro:** Luôn sử dụng môi trường giả lập (UAT/Sandbox) trước khi chính thức áp dụng các mã nguồn tự động hóa giao dịch trên tài khoản thật.
+

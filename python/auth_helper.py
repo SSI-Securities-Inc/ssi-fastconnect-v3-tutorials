@@ -45,34 +45,89 @@ def save_token(token: Token) -> None:
 def ensure_auth(auth, otp: str | None = None) -> None:
     """Đảm bảo auth có token hợp lệ (sync)."""
     cached_token = load_token()
-    if cached_token is None:
-        print("Không tìm thấy file token, đang authenticate...")
-        cached_token = auth.token_manager.authenticate(otp=otp) if otp else auth.token_manager.authenticate()
-        save_token(cached_token)
-        print("Authenticate thành công, token đã lưu.")
-    auth.token_manager.set_token(cached_token)
-    if auth.token_manager.is_token_expired:
+    if cached_token is not None:
+        auth.token_manager.set_token(cached_token)
+        if not auth.is_token_expired:
+            print("Token còn hạn, dùng token từ file.")
+            return
         print("Token đã hết hạn, đang refresh...")
-        cached_token = auth.token_manager.refresh()
-        save_token(cached_token)
-        print("Refresh token thành công.")
+        try:
+            cached_token = auth.refresh()
+            save_token(cached_token)
+            print("Refresh token thành công.")
+            return
+        except Exception as e:
+            print(f"Refresh token thất bại ({e}), tiến hành xác thực lại...")
+
+    print("Không tìm thấy token hợp lệ, đang thực hiện quy trình xác thực & OTP...")
+    if otp:
+        cached_token = auth.authenticate(otp=otp)
     else:
-        print("Token còn hạn, dùng token từ file.")
+        print("=== Yêu cầu OTP (Request OTP) ===")
+        otp_res = auth.request_otp()
+        transaction_id = None
+        if isinstance(otp_res, dict):
+            data_map = otp_res.get("data", {})
+            if isinstance(data_map, dict):
+                transaction_id = data_map.get("transactionId") or data_map.get("transaction_id")
+            if not transaction_id:
+                transaction_id = otp_res.get("transactionId") or otp_res.get("transaction_id")
+
+        if transaction_id:
+            print(f"[Smart OTP] Transaction ID: {transaction_id}")
+            print("Vui lòng mở app SSI iBoard trên điện thoại và bấm APPROVE (Xác nhận)...")
+            print("SDK đang Polling chờ bạn bấm phê duyệt...")
+            auth.ensure_authenticated(transaction_id=transaction_id, poll_interval=5, poll_max_retries=6)
+        else:
+            user_otp = input("Vui lòng nhập mã OTP 6 số: ").strip()
+            auth.authenticate(otp=user_otp)
+
+    if auth.token:
+        save_token(auth.token)
+        print("Authenticate thành công, token đã lưu.")
 
 
 async def ensure_auth_async(auth, otp: str | None = None) -> None:
     """Đảm bảo auth có token hợp lệ (async)."""
     cached_token = load_token()
-    if cached_token is None:
-        print("Không tìm thấy file token, đang authenticate...")
-        cached_token = await auth.token_manager.authenticate(otp=otp) if otp else await auth.token_manager.authenticate()
-        save_token(cached_token)
-        print("Authenticate thành công, token đã lưu.")
-    await auth.token_manager.set_token(cached_token)
-    if auth.token_manager.is_token_expired:
+    if cached_token is not None:
+        await auth.token_manager.set_token(cached_token)
+        if not auth.is_token_expired:
+            print("Token còn hạn, dùng token từ file.")
+            return
         print("Token đã hết hạn, đang refresh...")
-        cached_token = await auth.token_manager.refresh()
-        save_token(cached_token)
-        print("Refresh token thành công.")
+        try:
+            cached_token = await auth.refresh()
+            save_token(cached_token)
+            print("Refresh token thành công.")
+            return
+        except Exception as e:
+            print(f"Refresh token thất bại ({e}), tiến hành xác thực lại...")
+
+    print("Không tìm thấy token hợp lệ, đang thực hiện quy trình xác thực & OTP...")
+    if otp:
+        cached_token = await auth.authenticate(otp=otp)
     else:
-        print("Token còn hạn, dùng token từ file.")
+        print("=== Yêu cầu OTP (Request OTP) ===")
+        otp_res = await auth.request_otp()
+        transaction_id = None
+        if isinstance(otp_res, dict):
+            data_map = otp_res.get("data", {})
+            if isinstance(data_map, dict):
+                transaction_id = data_map.get("transactionId") or data_map.get("transaction_id")
+            if not transaction_id:
+                transaction_id = otp_res.get("transactionId") or otp_res.get("transaction_id")
+
+        if transaction_id:
+            print(f"[Smart OTP] Transaction ID: {transaction_id}")
+            print("Vui lòng mở app SSI iBoard trên điện thoại và bấm APPROVE (Xác nhận)...")
+            print("SDK đang Polling chờ bạn bấm phê duyệt...")
+            await auth.ensure_authenticated(transaction_id=transaction_id, poll_interval=5, poll_max_retries=6)
+        else:
+            user_otp = input("Vui lòng nhập mã OTP 6 số: ").strip()
+            await auth.authenticate(otp=user_otp)
+
+    if auth.token:
+        save_token(auth.token)
+        print("Authenticate thành công, token đã lưu.")
+

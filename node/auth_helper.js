@@ -19,6 +19,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import readline from 'node:readline';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -42,30 +43,67 @@ export function saveToken(token) {
   console.log(`Token da luu vao ${TOKEN_FILE}`);
 }
 
+function askQuestion(query) {
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  return new Promise((resolve) => {
+    rl.question(query, (ans) => {
+      rl.close();
+      resolve(ans);
+    });
+  });
+}
+
 /**
  * Dam bao `auth` co token hop le.
  * @param {import('@ssi.developer/ssi-sdk').Auth} auth
- * @param {string} [otp] OTP cho lan authenticate dau tien (sample trading/streaming).
+ * @param {string} [otp] OTP cho lan authenticate dau tien.
  */
 export async function ensureAuth(auth, otp) {
   let token = loadToken();
 
-  if (token == null) {
-    console.log('Khong tim thay file token, dang authenticate...');
-    token = otp ? await auth.authenticate(otp) : await auth.authenticate();
-    saveToken(token);
-    console.log('Authenticate thanh cong, token da luu.');
-    return;
+  if (token != null) {
+    auth.setToken(token);
+    if (auth.tokenManager.isAuthenticated()) {
+      console.log('Token con han, dung token tu file.');
+      return;
+    }
+
+    console.log('Token da het han, dang refresh...');
+    try {
+      token = await auth.refresh();
+      saveToken(token);
+      console.log('Refresh token thanh cong.');
+      return;
+    } catch (err) {
+      console.log(`Refresh token that bai (${err.message}), tien hanh xac thuc lai...`);
+    }
   }
 
-  auth.setToken(token);
-
-  if (!auth.tokenManager.isAuthenticated()) {
-    console.log('Token da het han, dang refresh...');
-    token = await auth.refresh();
-    saveToken(token);
-    console.log('Refresh token thanh cong.');
+  console.log('Khong tim thay token hop le, dang thuc hien quy trinh xac thuc & OTP...');
+  if (otp) {
+    token = await auth.authenticate(otp);
   } else {
-    console.log('Token con han, dung token tu file.');
+    console.log('=== Yeu cau OTP (Request OTP) ===');
+    const otpRes = await auth.requestOtp();
+    let transactionId = otpRes?.data?.transactionId || otpRes?.transactionId;
+
+    if (transactionId) {
+      console.log(`[Smart OTP] Transaction ID: ${transactionId}`);
+      console.log('Vui long mo ung dung SSI tren dien thoai va bam APPROVE (Xac nhan)...');
+      console.log('SDK dang Polling cho ban bam phe duyet...');
+      await auth.ensureAuthenticated(undefined, transactionId, 5000, 6);
+      token = auth.getToken();
+    } else {
+      const userOtp = await askQuestion('Vui long nhap ma OTP 6 so: ');
+      if (userOtp.trim()) {
+        token = await auth.authenticate(userOtp.trim());
+      }
+    }
+  }
+
+  if (auth.getToken()) {
+    saveToken(auth.getToken());
+    console.log('Authenticate thanh cong, token da luu.');
   }
 }
+
