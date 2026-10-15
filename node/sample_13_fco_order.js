@@ -9,7 +9,16 @@
  *   5. Trailing Stop Limit (Lệnh dừng xu hướng giới hạn)
  *   6. OCO (One-Cancels-the-Other / Lệnh Chốt lời & Cắt lỗ)
  *   7. Bull Bear (Lệnh Hai đầu)
- *   8. Truy vấn danh sách & Hủy lệnh FCO
+ *   8. Truy vấn danh sách, lịch sử trạng thái & Hủy lệnh FCO
+ *
+ * CẢNH BÁO: sample này GỬI LỆNH ĐIỀU KIỆN THẬT lên tài khoản trong config.json. Chỉ chạy trên tài
+ * khoản thử nghiệm hoặc khi bạn hiểu rõ rủi ro; sau khi chạy hãy hủy các lệnh còn treo.
+ *
+ * Lưu ý SDK 3.3.0:
+ *   - Ngày FCO có dạng `yyyy/MM/dd HH:mm:ss`, khoảng [fromDate, toDate] tối đa 31 ngày.
+ *   - Tài khoản yêu cầu mã OTP khi đặt/hủy FCO: đặt biến môi trường FCO_OTP (mã dùng một lần,
+ *     không ghi vào file); SDK chỉ gửi trường `code` khi có giá trị.
+ *   - getFcoStatusHistory(fcoId) trả về danh sách {state, time, code, detail} (rỗng nếu chưa có).
  */
 
 import { Auth, Trading, OrderSide, FCOOperator } from '@ssi.developer/ssi-sdk';
@@ -22,8 +31,18 @@ await ensureAuth(auth, OTP);
 const trading = new Trading(auth);
 
 const symbol = 'SSI';
-const fromDate = '2026/08/01 00:00:00';
-const toDate = '2026/08/30 23:59:59';
+
+// Khoảng hiệu lực: từ bây giờ đến 7 ngày sau (≤ 31 ngày), định dạng yyyy/MM/dd HH:mm:ss
+const pad = (n) => String(n).padStart(2, '0');
+const fmt = (d) =>
+  `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ` +
+  `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+const now = new Date();
+const fromDate = fmt(now);
+const toDate = fmt(new Date(now.getTime() + 7 * 24 * 3600 * 1000));
+
+// Mã OTP một lần cho FCO (nếu tài khoản yêu cầu) — lấy từ môi trường, không hardcode
+const FCO_CODE = process.env.FCO_OTP || undefined;
 
 console.log('=== FASTCONNECT NODE.JS SDK — SAMPLE 13: LỆNH ĐIỀU KIỆN (FCO) ===\n');
 
@@ -39,6 +58,7 @@ try {
     0,
     fromDate,
     toDate,
+    FCO_CODE,
   );
   console.log('  GTD Result:', gtdRes);
 
@@ -53,6 +73,7 @@ try {
     FCOOperator.GREATER_OR_EQUAL,
     fromDate,
     toDate,
+    FCO_CODE,
   );
   console.log('  Stop Result:', stopRes);
 
@@ -69,6 +90,7 @@ try {
     FCOOperator.GREATER_OR_EQUAL,
     fromDate,
     toDate,
+    FCO_CODE,
   );
   console.log('  Stop Limit Result:', stopLimitRes);
 
@@ -83,6 +105,7 @@ try {
     1000,
     fromDate,
     toDate,
+    FCO_CODE,
   );
   console.log('  Trailing Stop Result:', trailingRes);
 
@@ -98,6 +121,7 @@ try {
     500,
     fromDate,
     toDate,
+    FCO_CODE,
   );
   console.log('  Trailing Stop Limit Result:', trailingLimitRes);
 
@@ -116,6 +140,7 @@ try {
     0,     // slSlip
     fromDate,
     toDate,
+    FCO_CODE,
   );
   console.log('  OCO Result:', ocoRes);
 
@@ -136,6 +161,7 @@ try {
     0,     // slSlip
     fromDate,
     toDate,
+    FCO_CODE,
   );
   console.log('  Bull Bear Result:', bbRes);
 
@@ -147,14 +173,25 @@ try {
     console.log(`  FCO ID: ${item.fcoId} | Mã: ${item.symbol} | Loại: ${item.type} | Trạng thái: ${item.status}`);
   }
 
-  // --- 9. Hủy lệnh FCO vừa tạo nếu có ---
+  // --- 9. Lịch sử trạng thái của lệnh GTD vừa tạo ---
   if (gtdRes.fcoId) {
-    console.log(`\n--- 9. Hủy lệnh FCO ID: ${gtdRes.fcoId} ---`);
-    const cancelRes = await trading.trading.cancelFco(gtdRes.fcoId);
+    console.log(`\n--- 9. Lịch sử trạng thái FCO ID: ${gtdRes.fcoId} ---`);
+    const history = await trading.trading.getFcoStatusHistory(gtdRes.fcoId);
+    if (history.length === 0) console.log('  (chưa có lịch sử)');
+    for (const h of history) {
+      console.log(`  ${h.time} | ${h.state}${h.code ? ` (${h.code})` : ''} | ${h.detail}`);
+    }
+  }
+
+  // --- 10. Hủy lệnh FCO vừa tạo nếu có ---
+  if (gtdRes.fcoId) {
+    console.log(`\n--- 10. Hủy lệnh FCO ID: ${gtdRes.fcoId} ---`);
+    const cancelRes = await trading.trading.cancelFco(gtdRes.fcoId, FCO_CODE);
     console.log('  Hủy FCO Result:', cancelRes);
   }
 
   console.log('\n[Response] sample_13_fco_completed');
 } catch (error) {
-  console.error('Lỗi khi thực thi Sample 13:', error);
+  // Chỉ in tên/mã/thông điệp lỗi — không in nguyên object lỗi (có thể chứa header/body request)
+  console.error(`Lỗi khi thực thi Sample 13: ${error.name} [${error.code ?? 'n/a'}] ${error.message}`);
 }

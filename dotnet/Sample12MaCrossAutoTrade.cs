@@ -26,10 +26,11 @@ public static class Sample12MaCrossAutoTrade
     private sealed class Bar
     {
         public long Ts { get; set; }
-        public double Open { get; set; }
-        public double High { get; set; }
-        public double Low { get; set; }
-        public double Close { get; set; }
+        // Gia la decimal (SDK 3.3.0 tra gia theo decimal), khong dung double
+        public decimal Open { get; set; }
+        public decimal High { get; set; }
+        public decimal Low { get; set; }
+        public decimal Close { get; set; }
         public int Volume { get; set; }
     }
 
@@ -59,7 +60,7 @@ public static class Sample12MaCrossAutoTrade
             Console.WriteLine($"  Seeded {_closed.Count} historical bars");
         }
 
-        public Bar? OnTrade(double price, int quantity)
+        public Bar? OnTrade(decimal price, int quantity)
         {
             var bucket = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / _interval * _interval;
             lock (_lock)
@@ -97,7 +98,7 @@ public static class Sample12MaCrossAutoTrade
 
     // --- MA / Signal helpers ---
 
-    private static double? CalculateMa(List<Bar> bars, int period)
+    private static decimal? CalculateMa(List<Bar> bars, int period)
     {
         if (bars.Count < period) return null;
         return bars.Skip(bars.Count - period).Sum(b => b.Close) / period;
@@ -128,9 +129,12 @@ public static class Sample12MaCrossAutoTrade
         var dataClient = new DataClient(auth);
 
         Console.WriteLine($"--- Load lich su OHLC 5m ({Symbol}) ---");
+        const string dateFmt = "yyyy/MM/dd HH:mm:ss";
+        var now = DateTime.Now;
         var hist = await dataClient.MarketData.GetOhlc5MinuteHistoricalAsync(
-            Symbol, "2026/01/01 00:00:00", "2026/05/12 23:59:59", 1, MaSlow + 5);
-        builder.Seed(hist);
+            Symbol, now.AddDays(-7).ToString(dateFmt), now.ToString(dateFmt), 1, MaSlow + 5);
+        // Server tra nen moi nhat truoc -> dao lai thanh cu -> moi de MA tinh dung thu tu thoi gian
+        builder.Seed(hist.AsEnumerable().Reverse());
 
         // ===== State dung chung giua callbacks =====
         string? activeOrderId = null;
@@ -205,7 +209,7 @@ public static class Sample12MaCrossAutoTrade
                 $"ID={order.OrderId} | Status={order.Status} | " +
                 $"Khop={order.FilledQuantity}/{order.Quantity}");
 
-            if (!TerminalStatuses.Contains(order.Status)) return;
+            if (order.Status is null || !TerminalStatuses.Contains(order.Status)) return;
             lock (stateLock) { activeOrderId = null; }
 
             if (order.Status == OrderStatus.Filled && order.FilledQuantity > 0)

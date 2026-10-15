@@ -260,7 +260,7 @@ async def main():
 
                 # ===== Bước 4: Ping keepalive =====
                 # SDK tự gửi ping định kỳ và xử lý pong để giữ kết nối
-                await stream.streaming.ping(interval=30)
+                await stream.streaming.ping(interval_ms=30_000)
 
                 print(
                     f"Đang lắng nghe nến {BAR_SECONDS}s cho {SYMBOL}... "

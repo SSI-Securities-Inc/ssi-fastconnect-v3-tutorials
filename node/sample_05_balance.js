@@ -12,7 +12,7 @@
  */
 
 import { Auth, Trading } from '@ssi.developer/ssi-sdk';
-import { config, ACCOUNT_NO, OTP } from './config.js';
+import { config, ACCOUNT_NO, OTP, maskAccount } from './config.js';
 import { ensureAuth } from './auth_helper.js';
 
 const vnd = (x) => Number(x).toLocaleString('en-US', { maximumFractionDigits: 0 });
@@ -26,12 +26,17 @@ const trading = new Trading(auth);
 const accounts = await trading.account.getAccountInfo();
 console.log('Danh sach tai khoan:');
 for (const acc of accounts) {
-  console.log(`  - ${acc.accountNo} (${acc.accountType})`);
+  console.log(`  - ${maskAccount(acc.accountNo)} (${acc.accountType})`);
 }
 
 // --- Buoc 2: Lay so du tai khoan Equity ---
-console.log(`\n--- So du tai khoan Equity: ${ACCOUNT_NO} ---`);
+console.log(`\n--- So du tai khoan Equity: ${maskAccount(ACCOUNT_NO)} ---`);
 const balance = await trading.portfolio.getEquityBalance(ACCOUNT_NO);
+// SDK 3.3.0: tra ve undefined neu tai khoan khong co phan Equity (vd tai khoan phai sinh)
+if (balance === undefined) {
+  console.log('  Tai khoan khong co phan Equity — dung lai.');
+  process.exit(0);
+}
 console.log(`  Tien mat kha dung : ${vnd(balance.accountBalance).padStart(15)}`);
 console.log(`  Tong no           : ${vnd(balance.totalDebt).padStart(15)}`);
 console.log(`  Mua T0/T1/T2      : ${vnd(balance.buyT0).padStart(12)} / ${vnd(balance.buyT1).padStart(12)} / ${vnd(balance.buyT2).padStart(12)}`);
@@ -39,10 +44,13 @@ console.log(`  Ban T0/T1/T2      : ${vnd(balance.sellT0).padStart(12)} / ${vnd(b
 
 // --- Buoc 3: Kiem tra suc mua toi da cho mot ma ---
 console.log('\n--- Suc mua/ban toi da: SSI ---');
-const maxBs = await trading.trading.getMaxBuySell(ACCOUNT_NO, 'SSI', 26000);
+// Gia truyen dang chuoi (PriceLike) de tranh sai so so thuc
+const maxBs = await trading.trading.getMaxBuySell(ACCOUNT_NO, 'SSI', '26000');
 console.log(`  Max mua : ${String(maxBs.maxBuyQuantity).padStart(10)} co phieu`);
 console.log(`  Max ban : ${String(maxBs.maxSellQuantity).padStart(10)} co phieu`);
-console.log(`  Suc mua : ${maxBs.purchasePower}`);
+// purchasePower da deprecated -> dung purchasingPower (undefined tren tai khoan phai sinh)
+console.log(`  Suc mua : ${maxBs.purchasingPower ?? 'N/A'}`);
+console.log(`  Ty le ky quy: ${maxBs.marginRatio ?? 'N/A'}`);
 
 // --- Buoc 4: Logic kiem tra truoc khi dat lenh ---
 const desiredQuantity = 100;
@@ -58,8 +66,9 @@ if (balance.accountBalance >= requiredAmount) {
 }
 
 // --- Buoc 5: Xem vi the hien co ---
-console.log(`\n--- Vi the co phieu (${ACCOUNT_NO}) ---`);
-const positions = await trading.portfolio.getEquityPositions(ACCOUNT_NO);
+console.log(`\n--- Vi the co phieu (${maskAccount(ACCOUNT_NO)}) ---`);
+// undefined khi tai khoan chua co vi the co phieu
+const positions = (await trading.portfolio.getEquityPositions(ACCOUNT_NO)) ?? [];
 for (const pos of positions) {
   console.log(
     `  ${pos.symbol.padEnd(10)} | SL: ${String(pos.quantity).padStart(8)} | ` +

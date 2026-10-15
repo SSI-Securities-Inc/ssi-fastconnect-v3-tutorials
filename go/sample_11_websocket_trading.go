@@ -7,7 +7,8 @@ Luồng:
  1. Client mở kết nối WebSocket bằng token hợp lệ (cần OTP)
  2. Subscribe stream order_status và portfolio theo accountId
  3. Server push event khi trạng thái lệnh hoặc danh mục thay đổi
- 4. Parse message theo loại (OrderStatus / Portfolio)
+ 4. Parse message theo loại (OrderStatus / OrderMatch / Portfolio) bằng callback typed
+    SetOnOrder / SetOnOrderMatch / SetOnPortfolio (portfolio chỉ có ở tài khoản phái sinh)
  5. Khi mất kết nối, chạy cơ chế reconnect exponential backoff
 */
 package main
@@ -17,7 +18,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
+	"strings"
 
 	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/auth"
 	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/ssi"
@@ -93,18 +94,20 @@ func main() {
 	}
 	fmt.Println("Đã kết nối!")
 
-	// --- Bước 2: Đăng ký callback sự kiện trading ---
-	s.Streaming.SetOnTrading(func(msg interface{}) {
-		switch m := msg.(type) {
-		case *stream.OrderStatusMessage:
-			fmt.Printf("  [ORDER] %s %s | OrderID: %s | Status: %s\n",
-				m.Symbol, m.Side, m.OrderID, m.Status)
-		case *stream.PortfolioMessage:
-			fmt.Printf("  [PORTFOLIO] Account: %s | Tổng TS: %.0f\n",
-				m.AccountNo, m.TotalAsset)
-		default:
-			fmt.Printf("  [TRADING] %v\n", msg)
-		}
+	// --- Bước 2: Đăng ký callback sự kiện trading (theo từng loại message) ---
+	s.Streaming.SetOnOrder(func(m *stream.OrderStatusMessage) {
+		fmt.Printf("  [ORDER] %s %s | OrderID: %s | Status: %s | Khớp: %d/%d\n",
+			m.Symbol, m.Side, m.OrderID, m.Status, m.FilledQuantity, m.Quantity)
+	})
+	s.Streaming.SetOnOrderMatch(func(m *stream.OrderMatchMessage) {
+		fmt.Printf("  [MATCH] %s %s | OrderID: %s | KL: %d @ %.0f\n",
+			m.Symbol, m.Side, m.OrderID, m.MatchQty, m.MatchPrice)
+	})
+	// Portfolio chỉ có ở tài khoản phái sinh. TotalAsset/CashBalance/StockValue luôn nil
+	// vì server không gửi — đọc vị thế (Long/Short/Net) thay vì tổng tài sản.
+	s.Streaming.SetOnPortfolio(func(m *stream.PortfolioMessage) {
+		fmt.Printf("  [PORTFOLIO] %s | Long: %d | Short: %d | Net: %d\n",
+			m.Symbol, m.LongQty, m.ShortQty, m.Net)
 	})
 
 	// --- Callback heartbeat ---
@@ -114,16 +117,18 @@ func main() {
 
 	// --- Bước 3: Subscribe trạng thái lệnh real-time ---
 	fmt.Println("Subscribing trạng thái lệnh...")
-	s.Streaming.SubscribeOrderStatus(accountNo, nil)
+	if err := s.Streaming.SubscribeOrderStatus(accountNo, nil); err != nil {
+		log.Fatal(err)
+	}
 
-	// --- Bước 4: Subscribe danh mục tài khoản real-time ---
-	// fmt.Println("Subscribing danh mục tài khoản...")
-	// s.Streaming.SubscribePortfolio(accountNo, nil)
+	// --- Bước 4: Subscribe vị thế real-time (chỉ tài khoản phái sinh) ---
+	// fmt.Println("Subscribing vị thế...")
+	// s.Streaming.SubscribePortfolio(derivativeAccountNo, nil)
 
 	// --- Bước 5: Lắng nghe liên tục ---
 	fmt.Println("\nĐang lắng nghe... (Ctrl+C để dừng)")
-	timeout := 5 * time.Minute
-	s.Wait(&timeout)
+	timeoutMs := 5 * 60 * 1000 // 5 phút, đơn vị mili-giây
+	s.Wait(&timeoutMs)
 }
 
 // ── Token cache helper ──────────────────────────────────────────────────────
@@ -161,7 +166,17 @@ func saveToken(token *auth.Token) {
 	fmt.Printf("Token đã lưu vào %s\n", tokenCacheFile)
 }
 
-func ensureAuth(a *ssi.Auth, otp string) {
+// cleanOTP bỏ qua OTP rỗng hoặc còn là placeholder (<OTP>, YOUR_OTP_CODE) để rơi sang luồng Smart OTP / nhập tay.
+func cleanOTP(otp string) string {
+	v := strings.TrimSpace(otp)
+	if v == "" || (strings.HasPrefix(v, "<") && strings.HasSuffix(v, ">")) || strings.HasPrefix(strings.ToUpper(v), "YOUR_") {
+		return ""
+	}
+	return v
+}
+
+func ensureAuth(a *ssi.Auth, otpInput string) {
+	otp := cleanOTP(otpInput)
 	token := loadToken()
 
 	if token != nil {

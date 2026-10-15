@@ -16,7 +16,12 @@
     "sample:10": "node sample_10_websocket_data.js",
     "sample:11": "node sample_11_websocket_trading.js",
     "sample:12": "node sample_12_ma_cross_auto_trade.js",
-    "sample:13": "node sample_13_fco_order.js"
+    "sample:13": "node sample_13_fco_order.js",
+    "sample:14": "node sample_14_batch_orders.js",
+    "sample:15": "node sample_15_positions_ppmmr.js",
+    "sample:16": "node sample_16_streaming_advanced.js",
+    "sample:17": "node sample_17_trading_ws.js",
+    "sample:18": "node sample_18_error_handling.js"
   },
   "dependencies": {
     "@ssi.developer/ssi-sdk": "file:../../sdk/ssi-sdk-node"

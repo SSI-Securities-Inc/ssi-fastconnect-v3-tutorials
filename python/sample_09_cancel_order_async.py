@@ -16,6 +16,7 @@ import asyncio
 from ssi_sdk import AsyncAuth, AsyncTrading
 from ssi_sdk.enums import OrderStatus
 from auth_helper import ensure_auth_async
+from helpers import enum_value
 from config import config, ACCOUNT_NO, OTP
 
 CANCELLABLE_STATUSES = {
@@ -45,10 +46,10 @@ async def main():
                 for order in open_orders:
                     remaining = order.quantity - order.filled_quantity
                     print(
-                        f"  OrderID: {order.order_id} | {order.symbol} {order.side.value} "
-                        f"{order.order_type.value} | SL: {order.quantity} @ {order.price} "
+                        f"  OrderID: {order.order_id} | {order.symbol} {enum_value(order.side)} "
+                        f"{enum_value(order.order_type)} | SL: {order.quantity} @ {order.price} "
                         f"| Khớp: {order.filled_quantity} | Còn: {remaining} "
-                        f"| Status: {order.status.value}"
+                        f"| Status: {enum_value(order.status)}"
                     )
 
                 # --- Bước 2: Hủy tất cả lệnh đang mở (song song) ---
@@ -79,7 +80,7 @@ async def main():
                     if order.order_id in {o.order_id for o in open_orders}:
                         print(
                             f"  OrderID: {order.order_id} | "
-                            f"Status: {order.status.value} | "
+                            f"Status: {enum_value(order.status)} | "
                             f"Khớp: {order.filled_quantity} | "
                             f"Đã hủy: {order.cancel_quantity}"
                         )

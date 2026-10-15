@@ -21,7 +21,7 @@ await ensureAuth(auth, OTP);
 const trading = new Trading(auth);
 
 // --- Buoc 1: Kiem tra suc mua truoc ---
-const maxBs = await trading.trading.getMaxBuySell(ACCOUNT_NO, 'SSI', 26000);
+const maxBs = await trading.trading.getMaxBuySell(ACCOUNT_NO, 'SSI', '26000');
 console.log(`Suc mua toi da SSI @ 26,000: ${maxBs.maxBuyQuantity} co phieu`);
 
 if (maxBs.maxBuyQuantity < 100) {
@@ -29,12 +29,12 @@ if (maxBs.maxBuyQuantity < 100) {
 } else {
   // --- Buoc 2: Dat lenh Limit mua ---
   console.log('\n--- Dat lenh LIMIT mua SSI ---');
-  const buyResult = await trading.trading.placeLimitOrder(ACCOUNT_NO, 'SSI', OrderSide.BUY, 100, 26000);
+  const buyResult = await trading.trading.placeLimitOrder(ACCOUNT_NO, 'SSI', OrderSide.BUY, 100, '26000');
   console.log('  Ket qua:', buyResult);
 
   // --- Buoc 3: Dat lenh Limit ban ---
   console.log('\n--- Dat lenh LIMIT ban SSI ---');
-  const sellResult = await trading.trading.placeLimitOrder(ACCOUNT_NO, 'SSI', OrderSide.SELL, 100, 27000);
+  const sellResult = await trading.trading.placeLimitOrder(ACCOUNT_NO, 'SSI', OrderSide.SELL, 100, '27000');
   console.log('  Ket qua:', sellResult);
 
   // --- Buoc 4: Kiem tra lenh vua dat trong so lenh ---

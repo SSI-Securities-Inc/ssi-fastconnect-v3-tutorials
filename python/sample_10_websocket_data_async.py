@@ -7,7 +7,7 @@ Luồng:
   1. Client mở kết nối WebSocket bằng token hợp lệ
   2. Subscribe các stream dữ liệu theo symbol / index
   3. Server push event khi có giao dịch mới hoặc bảng giá thay đổi
-  4. Parse message theo loại (Trade / Quote / ForeignRoom)
+  4. Parse message theo loại (Trade / Quote / ForeignRoom / IndexTick)
   5. Khi mất kết nối, chạy cơ chế reconnect exponential backoff
 """
 
@@ -20,13 +20,20 @@ from ssi_sdk.models.streaming import (
     TradeMessage,
     QuoteMessage,
     ForeignRoomMessage,
+    IndexTickMessage,
     HeartbeatMessage,
 )
 
 
 # --- Callback xử lý dữ liệu thị trường ---
 def on_market_data(msg):
-    if isinstance(msg, TradeMessage):
+    if isinstance(msg, IndexTickMessage):
+        # Tick của chính chỉ số (subscribe_index_ticks) — KHÔNG phải tick của mã thành phần
+        print(
+            f"  [INDEX] {msg.symbol} | Điểm: {msg.value} "
+            f"| Thay đổi: {msg.change} ({msg.change_percent}%)"
+        )
+    elif isinstance(msg, TradeMessage):
         print(
             f"  [TRADE] {msg.symbol} | Giá: {msg.price} "
             f"| KL: {msg.quantity} | Side: {msg.side}"
@@ -69,13 +76,18 @@ async def main():
             await stream.streaming.subscribe_symbol(["SSI", "HPG", "VNM"])
 
             # --- Bước 4: Subscribe dữ liệu theo index ---
-            print("Subscribing dữ liệu index...")
-            await stream.streaming.subscribe_index(["VNINDEX", "HNX-INDEX"])
+            # Từ SDK 3.3.0, subscribe_index gửi trade/quote/room.<code>@* nên server
+            # phát dữ liệu của CÁC MÃ THÀNH PHẦN (vd VN30), không phải tick của chỉ số.
+            print("Subscribing dữ liệu các mã thành phần của VN30...")
+            await stream.streaming.subscribe_index(["VN30"])
+            # Muốn nhận tick của chính chỉ số (IndexTickMessage) thì dùng subscribe_index_ticks.
+            print("Subscribing tick của chỉ số VNINDEX...")
+            await stream.streaming.subscribe_index_ticks(["VNINDEX"])
 
             # --- Bước 5: Lắng nghe liên tục ---
             print("\nĐang lắng nghe... (Ctrl+C để dừng)\n")
             try:
-                await stream.streaming.wait(timeout=300)  # 5 phút
+                await stream.streaming.wait(timeout_ms=300_000)  # 5 phút
             except KeyboardInterrupt:
                 print("\nNgắt kết nối...")
 

@@ -12,14 +12,23 @@ Thể hiện đầy đủ các loại lệnh điều kiện (Fast Conditional Or
   8. Truy vấn danh sách & Hủy lệnh FCO
 """
 
+from datetime import datetime, timedelta
+
 from ssi_sdk import Auth, Trading
 from auth_helper import ensure_auth
+from helpers import enum_value
 from config import config, ACCOUNT_NO, OTP
 from ssi_sdk.enums import FCOOperator, OrderSide
 
 symbol = "SSI"
-from_date = "2026/08/01 00:00:00"
-to_date = "2026/08/30 23:59:59"
+
+# Cửa sổ hiệu lực tính từ thời điểm chạy; server giới hạn tối đa 31 ngày (from -> to)
+_now = datetime.now()
+from_date = _now.strftime("%Y/%m/%d 00:00:00")
+to_date = (_now + timedelta(days=30)).strftime("%Y/%m/%d 23:59:59")
+
+# Mã OTP cho lệnh điều kiện: chỉ điền nếu tài khoản yêu cầu OTP cho FCO, để None nếu không cần
+FCO_CODE = None
 
 print("=== FASTCONNECT PYTHON SDK — SAMPLE 13: LỆNH ĐIỀU KIỆN (FCO) ===\n")
 
@@ -38,6 +47,7 @@ with Auth(config) as auth:
             price_slip=0,
             from_date=from_date,
             to_date=to_date,
+            code=FCO_CODE,
         )
         print(f"  GTD Result: {gtd_res}")
 
@@ -52,6 +62,7 @@ with Auth(config) as auth:
             operator=FCOOperator.GREATER_OR_EQUAL,
             from_date=from_date,
             to_date=to_date,
+            code=FCO_CODE,
         )
         print(f"  Stop Result: {stop_res}")
 
@@ -68,6 +79,7 @@ with Auth(config) as auth:
             operator=FCOOperator.GREATER_OR_EQUAL,
             from_date=from_date,
             to_date=to_date,
+            code=FCO_CODE,
         )
         print(f"  Stop Limit Result: {stop_limit_res}")
 
@@ -82,6 +94,7 @@ with Auth(config) as auth:
             trailing_amount=1000,
             from_date=from_date,
             to_date=to_date,
+            code=FCO_CODE,
         )
         print(f"  Trailing Stop Result: {trailing_res}")
 
@@ -97,6 +110,7 @@ with Auth(config) as auth:
             price_slip=500,
             from_date=from_date,
             to_date=to_date,
+            code=FCO_CODE,
         )
         print(f"  Trailing Stop Limit Result: {trailing_limit_res}")
 
@@ -115,6 +129,7 @@ with Auth(config) as auth:
             sl_slip=0,
             from_date=from_date,
             to_date=to_date,
+            code=FCO_CODE,
         )
         print(f"  OCO Result: {oco_res}")
 
@@ -135,6 +150,7 @@ with Auth(config) as auth:
             sl_slip=0,
             from_date=from_date,
             to_date=to_date,
+            code=FCO_CODE,
         )
         print(f"  Bull Bear Result: {bb_res}")
 
@@ -143,12 +159,19 @@ with Auth(config) as auth:
         fco_list = trading.trading.get_fco_by_account_no(ACCOUNT_NO, page_index=1, page_size=10)
         print(f"  Tổng số lệnh FCO: {fco_list.items_count}")
         for item in fco_list.fco_list[:5]:
-            print(f"  FCO ID: {item.fco_id} | Mã: {item.symbol} | Loại: {item.type} | Trạng thái: {item.status}")
+            print(f"  FCO ID: {item.fco_id} | Mã: {item.symbol} | Loại: {enum_value(item.type)} | Trạng thái: {enum_value(item.status)}")
+
+        # --- 8b. Lịch sử trạng thái của một lệnh FCO ---
+        if getattr(gtd_res, "fco_id", None):
+            print(f"\n--- 8b. Lịch sử trạng thái FCO ID: {gtd_res.fco_id} ---")
+            history = trading.trading.get_fco_status_history(gtd_res.fco_id)
+            for h in history:
+                print(f"  {h.time} | {h.state} | code={h.code} | {h.detail}")
 
         # --- 9. Hủy lệnh FCO vừa tạo nếu có ---
         if hasattr(gtd_res, "fco_id") and gtd_res.fco_id:
             print(f"\n--- 9. Hủy lệnh FCO ID: {gtd_res.fco_id} ---")
-            cancel_res = trading.trading.cancel_fco(gtd_res.fco_id)
+            cancel_res = trading.trading.cancel_fco(gtd_res.fco_id, code=FCO_CODE)
             print(f"  Hủy FCO Result: {cancel_res}")
 
         print("\n[Response] sample_13_fco_completed")

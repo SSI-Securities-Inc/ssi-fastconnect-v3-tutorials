@@ -16,6 +16,7 @@ import asyncio
 from ssi_sdk import AsyncAuth, AsyncTrading
 from ssi_sdk.enums import OrderSide, OrderStatus
 from auth_helper import ensure_auth_async
+from helpers import enum_value
 from config import config, ACCOUNT_NO, OTP
 
 TERMINAL_STATUSES = {
@@ -61,13 +62,13 @@ async def main():
 
                 print(
                     f"  Poll {i}: OrderID={latest.order_id} | "
-                    f"Status={latest.status.value} | "
+                    f"Status={enum_value(latest.status)} | "
                     f"Khớp={latest.filled_quantity}/{latest.quantity} | "
                     f"Còn lại={remaining}"
                 )
 
                 if latest.status in TERMINAL_STATUSES:
-                    print(f"\n→ Lệnh đã kết thúc với trạng thái: {latest.status.value}")
+                    print(f"\n→ Lệnh đã kết thúc với trạng thái: {enum_value(latest.status)}")
                     if latest.filled_quantity > 0:
                         print(f"  Đã khớp: {latest.filled_quantity} cổ phiếu @ trung bình {latest.avg_price:,.0f}")
                     break

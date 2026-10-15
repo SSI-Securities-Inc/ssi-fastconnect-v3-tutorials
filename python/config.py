@@ -44,3 +44,17 @@ def load_config():
 
 
 config, ACCOUNT_NO, OTP = load_config()
+
+
+def load_derivative_account() -> str:
+    """Số tài khoản phái sinh (derivative_account) từ config.json, rỗng nếu chưa cấu hình."""
+    if os.path.exists(CONFIG_PATH):
+        try:
+            with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+                return json.load(f).get("derivative_account", "") or ""
+        except Exception:
+            return ""
+    return ""
+
+
+DERIVATIVE_ACCOUNT_NO = load_derivative_account()

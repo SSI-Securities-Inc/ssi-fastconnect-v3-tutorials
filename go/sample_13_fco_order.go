@@ -9,7 +9,10 @@ Thể hiện đầy đủ các loại lệnh điều kiện (Fast Conditional Or
  5. Trailing Stop Limit (Lệnh dừng xu hướng giới hạn)
  6. OCO (One-Cancels-the-Other / Lệnh Chốt lời & Cắt lỗ)
  7. Bull Bear (Lệnh Hai đầu)
- 8. Truy vấn danh sách & Hủy lệnh FCO
+ 8. Truy vấn danh sách, lịch sử trạng thái (GetFcoStatusHistory) & Hủy lệnh FCO
+
+Mã OTP cho lệnh FCO (nếu tài khoản yêu cầu): đặt biến môi trường FCO_OTP_CODE,
+SDK sẽ gửi kèm qua trading.WithOTPCode. Không ghi mã này vào file.
 */
 package main
 
@@ -18,6 +21,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/auth"
 	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/ssi"
@@ -88,7 +92,8 @@ func main() {
 	fromDate := "2026/08/01 00:00:00"
 	toDate := "2026/08/30 23:59:59"
 
-	fmt.Println("=== FASTCONNECT GO SDK — SAMPLE 13: LỆNH ĐIỀU KIỆN (FCO) ===\n")
+	fmt.Println("=== FASTCONNECT GO SDK — SAMPLE 13: LỆNH ĐIỀU KIỆN (FCO) ===")
+	fmt.Println()
 
 	// --- 1. Lệnh GTD (Good-Till-Date) ---
 	fmt.Println("--- 1. Đặt lệnh GTD ---")
@@ -184,10 +189,28 @@ func main() {
 		}
 	}
 
+	// --- 8b. Lịch sử chuyển trạng thái của lệnh FCO vừa tạo ---
+	if gtdRes != nil && gtdRes.FCOID != "" {
+		fmt.Printf("\n--- 8b. Lịch sử trạng thái FCO ID: %s ---\n", gtdRes.FCOID)
+		history, err := t.Trading.GetFcoStatusHistory(gtdRes.FCOID)
+		if err != nil {
+			fmt.Printf("Lỗi lấy lịch sử trạng thái FCO: %v\n", err)
+		} else if len(history) == 0 {
+			fmt.Println("  (chưa có chuyển trạng thái nào)")
+		}
+		for _, h := range history {
+			code := "-" // Code là con trỏ, nil khi server không gửi
+			if h.Code != nil {
+				code = *h.Code
+			}
+			fmt.Printf("  %s | %s | code: %s | %s\n", h.Time, h.State, code, h.Detail)
+		}
+	}
+
 	// --- 9. Hủy lệnh FCO vừa tạo nếu có ---
 	if gtdRes != nil && gtdRes.FCOID != "" {
 		fmt.Printf("\n--- 9. Hủy lệnh FCO ID: %s ---\n", gtdRes.FCOID)
-		cancelRes, err := t.Trading.CancelFco(gtdRes.FCOID)
+		cancelRes, err := t.Trading.CancelFco(gtdRes.FCOID, fcoOTPOptions()...)
 		if err != nil {
 			fmt.Printf("Lỗi hủy FCO: %v\n", err)
 		} else {
@@ -196,6 +219,14 @@ func main() {
 	}
 
 	fmt.Println("\n[Response] sample_13_fco_completed")
+}
+
+// fcoOTPOptions trả về WithOTPCode khi FCO_OTP_CODE được đặt; không có thì không gửi OTP.
+func fcoOTPOptions() []trading.FCOOption {
+	if code := os.Getenv("FCO_OTP_CODE"); code != "" {
+		return []trading.FCOOption{trading.WithOTPCode(code)}
+	}
+	return nil
 }
 
 // ── Token cache helper ──────────────────────────────────────────────────────
@@ -233,7 +264,17 @@ func saveToken(token *auth.Token) {
 	fmt.Printf("Token đã lưu vào %s\n", tokenCacheFile)
 }
 
-func ensureAuth(a *ssi.Auth, otp string) {
+// cleanOTP bỏ qua OTP rỗng hoặc còn là placeholder (<OTP>, YOUR_OTP_CODE) để rơi sang luồng Smart OTP / nhập tay.
+func cleanOTP(otp string) string {
+	v := strings.TrimSpace(otp)
+	if v == "" || (strings.HasPrefix(v, "<") && strings.HasSuffix(v, ">")) || strings.HasPrefix(strings.ToUpper(v), "YOUR_") {
+		return ""
+	}
+	return v
+}
+
+func ensureAuth(a *ssi.Auth, otpInput string) {
+	otp := cleanOTP(otpInput)
 	token := loadToken()
 
 	if token != nil {

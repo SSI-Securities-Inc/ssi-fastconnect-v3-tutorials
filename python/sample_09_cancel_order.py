@@ -14,6 +14,7 @@ Luồng:
 from ssi_sdk import Auth, Trading
 from ssi_sdk.enums import OrderStatus
 from auth_helper import ensure_auth
+from helpers import enum_value
 from config import config, ACCOUNT_NO, OTP
 # Trạng thái có thể hủy
 CANCELLABLE_STATUSES = {
@@ -41,10 +42,10 @@ with Auth(config) as auth:
             for order in open_orders:
                 remaining = order.quantity - order.filled_quantity
                 print(
-                    f"  OrderID: {order.order_id} | {order.symbol} {order.side.value} "
-                    f"{order.order_type.value} | SL: {order.quantity} @ {order.price} "
+                    f"  OrderID: {order.order_id} | {order.symbol} {enum_value(order.side)} "
+                    f"{enum_value(order.order_type)} | SL: {order.quantity} @ {order.price} "
                     f"| Khớp: {order.filled_quantity} | Còn: {remaining} "
-                    f"| Status: {order.status.value}"
+                    f"| Status: {enum_value(order.status)}"
                 )
 
             # --- Bước 2: Hủy lệnh đầu tiên trong danh sách ---
@@ -64,7 +65,7 @@ with Auth(config) as auth:
                 if order.order_id == target.order_id:
                     print(
                         f"  OrderID: {order.order_id} | "
-                        f"Status: {order.status.value} | "
+                        f"Status: {enum_value(order.status)} | "
                         f"Khớp: {order.filled_quantity} | "
                         f"Đã hủy: {order.cancel_quantity}"
                     )

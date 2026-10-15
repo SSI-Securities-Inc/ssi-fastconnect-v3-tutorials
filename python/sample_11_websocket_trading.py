@@ -7,15 +7,17 @@ Luồng:
   1. Client mở kết nối WebSocket bằng token hợp lệ (cần OTP)
   2. Subscribe stream order_status và portfolio theo accountId
   3. Server push event khi trạng thái lệnh hoặc danh mục thay đổi
-  4. Parse message theo loại (OrderStatus / Portfolio)
+  4. Parse message theo loại (OrderStatus / OrderMatch / Portfolio)
   5. Khi mất kết nối, chạy cơ chế reconnect exponential backoff
 """
 
 from ssi_sdk import Auth, Stream
 from auth_helper import ensure_auth
+from helpers import enum_value
 from config import config, ACCOUNT_NO, OTP
 from ssi_sdk.models.streaming import (
     OrderStatusMessage,
+    OrderMatchMessage,
     PortfolioMessage,
     HeartbeatMessage,
 )
@@ -24,14 +26,22 @@ from ssi_sdk.models.streaming import (
 def on_trading_event(msg):
     if isinstance(msg, OrderStatusMessage):
         print(
-            f"  [ORDER] {msg.symbol} {msg.side} | "
-            f"OrderID: {msg.order_id} | Status: {msg.status} | "
+            f"  [ORDER] {msg.symbol} {enum_value(msg.side)} | "
+            f"OrderID: {msg.order_id} | Status: {enum_value(msg.status)} | "
             f"Khớp: {msg.filled_quantity}/{msg.quantity}"
         )
-    elif isinstance(msg, PortfolioMessage):
+    elif isinstance(msg, OrderMatchMessage):
+        # Khớp lệnh: cùng topic với order status, SDK tách thành OrderMatchMessage
         print(
-            f"  [PORTFOLIO] Account: {msg.account_no} | "
-            f"Tổng TS: {msg.total_asset} | Cash: {msg.cash_balance}"
+            f"  [MATCH] {msg.symbol} {enum_value(msg.side)} | "
+            f"OrderID: {msg.order_id} | Giá khớp: {msg.match_price} | KL khớp: {msg.match_qty}"
+        )
+    elif isinstance(msg, PortfolioMessage):
+        # Chỉ có với tài khoản phái sinh. total_asset/cash_balance/stock_value đã deprecated
+        # (server không gửi) nên không dùng; dùng các trường vị thế bên dưới.
+        print(
+            f"  [PORTFOLIO] {msg.symbol} | Long: {msg.long_qty} Short: {msg.short_qty} "
+            f"Net: {msg.net} | Loại: {msg.position_type} | Floating P/L: {msg.floating_pl}"
         )
     else:
         print(f"  [TRADING] {msg}")
@@ -43,7 +53,7 @@ def on_heartbeat(msg: HeartbeatMessage):
 
 
 with Auth(config) as auth:
-    ensure_auth(auth, otp="<OTP>")
+    ensure_auth(auth, otp=OTP)
 
     with Stream(auth) as stream:
         # --- Bước 1: Mở kết nối WebSocket ---
@@ -66,6 +76,6 @@ with Auth(config) as auth:
         # --- Bước 5: Lắng nghe liên tục ---
         print("\nĐang lắng nghe... (Ctrl+C để dừng)\n")
         try:
-            stream.streaming.wait(timeout=300)  # 5 phút
+            stream.streaming.wait(timeout_ms=300_000)  # 5 phút
         except KeyboardInterrupt:
             print("\nNgắt kết nối...")

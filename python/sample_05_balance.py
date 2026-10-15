@@ -13,6 +13,7 @@ Luồng:
 
 from ssi_sdk import Auth, Trading
 from auth_helper import ensure_auth
+from helpers import enum_value, mask_account
 from config import config, ACCOUNT_NO, OTP
 
 with Auth(config) as auth:
@@ -23,10 +24,10 @@ with Auth(config) as auth:
         accounts = trading.account.get_account_info()
         print("Danh sách tài khoản:")
         for acc in accounts:
-            print(f"  - {acc.account_no} ({acc.account_type.value})")
+            print(f"  - {mask_account(acc.account_no)} ({enum_value(acc.account_type)})")
 
         # --- Bước 2: Lấy số dư tài khoản Equity ---
-        print(f"\n--- Số dư tài khoản Equity: {ACCOUNT_NO} ---")
+        print(f"\n--- Số dư tài khoản Equity: {mask_account(ACCOUNT_NO)} ---")
         balance = trading.portfolio.get_equity_balance(ACCOUNT_NO)
         print(f"  Tiền mặt khả dụng  : {balance.account_balance:>15,.0f}")
         print(f"  Tổng nợ            : {balance.total_debt:>15,.0f}")
@@ -38,7 +39,7 @@ with Auth(config) as auth:
         max_bs = trading.trading.get_max_buy_sell(ACCOUNT_NO, "SSI", 26000)
         print(f"  Max mua : {max_bs.max_buy_quantity:>10} cổ phiếu")
         print(f"  Max bán : {max_bs.max_sell_quantity:>10} cổ phiếu")
-        print(f"  Sức mua : {max_bs.purchase_power:>15}")
+        print(f"  Sức mua : {max_bs.purchasing_power}")
 
         # --- Bước 4: Logic kiểm tra trước khi đặt lệnh ---
         desired_quantity = 100
@@ -53,10 +54,12 @@ with Auth(config) as auth:
             print("  -> Chặn đặt lệnh.")
 
         # --- Bước 5: Xem vị thế hiện có ---
-        print(f"\n--- Vị thế cổ phiếu ({ACCOUNT_NO}) ---")
+        print(f"\n--- Vị thế cổ phiếu ({mask_account(ACCOUNT_NO)}) ---")
         positions = trading.portfolio.get_equity_positions(ACCOUNT_NO)
         for pos in positions:
             print(
                 f"  {pos.symbol:<10} | SL: {pos.quantity:>8} | "
                 f"Bán được: {pos.sellable_quantity:>8} | Giá vốn: {pos.cost_price:>10,.0f}"
+                f" | T1/T2 mua: {pos.t1_buy_quantity}/{pos.t2_buy_quantity} "
+                f"| T1/T2 bán: {pos.t1_sell_quantity}/{pos.t2_sell_quantity}"
             )

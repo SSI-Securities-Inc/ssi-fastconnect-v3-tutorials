@@ -58,8 +58,22 @@ static class AuthHelper
         Console.WriteLine($"Token da luu vao {targetFile}");
     }
 
-    public static async Task EnsureAuthAsync(AuthClient auth, string? otp = null)
+    // Bo qua OTP rong hoac con la placeholder (<OTP>, YOUR_OTP_CODE) de roi sang luong Smart OTP / nhap tay.
+    private static string? CleanOtp(string? otp)
     {
+        var value = otp?.Trim();
+        if (string.IsNullOrEmpty(value)
+            || (value.StartsWith('<') && value.EndsWith('>'))
+            || value.StartsWith("YOUR_", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+        return value;
+    }
+
+    public static async Task EnsureAuthAsync(AuthClient auth, string? otpInput = null)
+    {
+        var otp = CleanOtp(otpInput);
         var cached = LoadToken();
 
         if (cached is not null)
@@ -115,7 +129,7 @@ static class AuthHelper
                 Console.WriteLine("SDK dang Polling cho ban bam phe duyet...");
                 var accessToken = await auth.EnsureAuthenticatedAsync(
                     transactionId: transactionId,
-                    pollInterval: TimeSpan.FromSeconds(5),
+                    pollIntervalMs: 5000,
                     pollMaxRetries: 6
                 );
                 cached = auth.TokenManager.Token;

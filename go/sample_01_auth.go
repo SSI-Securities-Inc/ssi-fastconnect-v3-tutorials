@@ -21,6 +21,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/account"
 	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/auth"
 	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/ssi"
 )
@@ -101,15 +102,23 @@ func main() {
 
 	fmt.Printf("\nXác thực thành công! Tìm thấy %d tài khoản:\n", len(accounts))
 	for _, acc := range accounts {
-		fmt.Printf("  - %s (%s)\n", acc.AccountNo, acc.AccountType)
+		fmt.Printf("  - %s (%s)\n", acc.AccountNo, accountTypeText(acc.AccountType))
 	}
 	// --- Response Summary ---
 	fmt.Println("\n[Response] token_type|expires_at|account_count")
 	fmt.Printf("Bearer|%d|%d\n", authObj.TokenManager.Token().ExpiresAt, len(accounts))
 	fmt.Println("[Response:account] account_no|account_type")
 	for _, acc := range accounts {
-		fmt.Printf("%s|%s\n", acc.AccountNo, acc.AccountType)
+		fmt.Printf("%s|%s\n", acc.AccountNo, accountTypeText(acc.AccountType))
 	}
+}
+
+// AccountType là con trỏ: nil nghĩa là server không gửi trường này.
+func accountTypeText(t *account.AccountType) string {
+	if t == nil {
+		return "-"
+	}
+	return string(*t)
 }
 
 // ── Token cache helper ──────────────────────────────────────────────────────
@@ -147,7 +156,17 @@ func saveToken(token *auth.Token) {
 	fmt.Printf("Token đã lưu vào %s\n", tokenCacheFile)
 }
 
-func ensureAuth(a *ssi.Auth, otp string) {
+// cleanOTP bỏ qua OTP rỗng hoặc còn là placeholder (<OTP>, YOUR_OTP_CODE) để rơi sang luồng Smart OTP / nhập tay.
+func cleanOTP(otp string) string {
+	v := strings.TrimSpace(otp)
+	if v == "" || (strings.HasPrefix(v, "<") && strings.HasSuffix(v, ">")) || strings.HasPrefix(strings.ToUpper(v), "YOUR_") {
+		return ""
+	}
+	return v
+}
+
+func ensureAuth(a *ssi.Auth, otpInput string) {
+	otp := cleanOTP(otpInput)
 	token := loadToken()
 
 	if token != nil {

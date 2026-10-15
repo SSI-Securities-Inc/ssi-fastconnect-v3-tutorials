@@ -39,7 +39,10 @@ export function loadToken() {
 }
 
 export function saveToken(token) {
-  fs.writeFileSync(TOKEN_FILE, JSON.stringify(token, null, 2), 'utf-8');
+  // SDK 3.3.0: JSON.stringify(token) / console.log(token) CHE secret (***abcd) de khong lo log.
+  // Muon luu xuong file phai dung token.toDict() (gia tri that); file chi cho chu so huu doc.
+  const data = typeof token?.toDict === 'function' ? token.toDict() : token;
+  fs.writeFileSync(TOKEN_FILE, JSON.stringify(data, null, 2), { encoding: 'utf-8', mode: 0o600 });
   console.log(`Token da luu vao ${TOKEN_FILE}`);
 }
 
@@ -54,11 +57,25 @@ function askQuestion(query) {
 }
 
 /**
+ * Bo qua OTP rong hoac con la placeholder (`<OTP>`, `YOUR_OTP_CODE`) de roi sang luong Smart OTP / nhap tay.
+ * @param {string} [otp]
+ * @returns {string | undefined}
+ */
+function cleanOtp(otp) {
+  const value = typeof otp === 'string' ? otp.trim() : '';
+  if (!value || (value.startsWith('<') && value.endsWith('>')) || value.toUpperCase().startsWith('YOUR_')) {
+    return undefined;
+  }
+  return value;
+}
+
+/**
  * Dam bao `auth` co token hop le.
  * @param {import('@ssi.developer/ssi-sdk').Auth} auth
- * @param {string} [otp] OTP cho lan authenticate dau tien.
+ * @param {string} [otpInput] OTP cho lan authenticate dau tien (placeholder se bi bo qua).
  */
-export async function ensureAuth(auth, otp) {
+export async function ensureAuth(auth, otpInput) {
+  const otp = cleanOtp(otpInput);
   let token = loadToken();
 
   if (token != null) {
@@ -69,6 +86,7 @@ export async function ensureAuth(auth, otp) {
     }
 
     console.log('Token da het han, dang refresh...');
+    // Neu refresh token cung het han, SDK nem ReauthenticationRequired -> roi xuong buoc xac thuc lai.
     try {
       token = await auth.refresh();
       saveToken(token);

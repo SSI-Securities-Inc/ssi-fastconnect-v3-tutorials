@@ -8,17 +8,24 @@ Luồng:
  2. API trả về mảng OHLCV theo mốc thời gian
  3. Chuẩn hóa dữ liệu (time/open/high/low/close/volume)
  4. Truyền vào chart component hoặc indicator engine
- 5. Nếu lịch sử dài thì lặp theo paging/window thời gian
+ 5. Nếu lịch sử dài thì lặp theo paging/window thời gian (hoặc dùng GetOHLCAll/IterOHLC)
+
+Lưu ý SDK 3.3.0: server không phục vụ nến tuần (1w) và tháng (1M) — GetOHLC1WeekHistorical /
+GetOHLC1MonthHistorical luôn trả ValidationError. Lấy nến 1 ngày rồi tự gộp phía client.
 */
 package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
+	ssisdk "github.com/SSI-Securities-Inc/ssi-sdk-go/v3"
 	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/auth"
+	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/market"
 	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/ssi"
 )
 
@@ -151,6 +158,37 @@ func main() {
 	}
 	fmt.Printf("\nTổng cộng %d nến 1 phút được tải.\n", totalBars)
 
+	// --- Bước 5: Lấy toàn bộ nến trong khoảng (SDK tự phân trang) ---
+	// FromDate/ToDate dạng YYYY/MM/DD được SDK bổ sung giờ (00:00:00 / 23:59:59).
+	fmt.Printf("\n--- GetOHLCAll 1 phút (%s) ---\n", symbol)
+	query := market.OHLCQuery{FromDate: "2026/03/25", ToDate: "2026/03/25", Size: 100, Ascending: true}
+	allBars, err := data.MarketData.GetOHLCAll(symbol, market.TimeframeMinute1, query)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("  Tải được %d nến (cũ nhất trước).\n", len(allBars))
+
+	// IterOHLC duyệt từng nến (mới nhất trước) và dừng sớm khi yield trả false.
+	fmt.Println("  3 nến mới nhất qua IterOHLC:")
+	seen := 0
+	err = data.MarketData.IterOHLC(symbol, market.TimeframeMinute1,
+		market.OHLCQuery{FromDate: "2026/03/25", ToDate: "2026/03/25", Size: 100},
+		func(c market.OHLCData) bool {
+			fmt.Printf("    %s | C:%.0f V:%d\n", c.TradingDate, c.ClosePrice, c.Volume)
+			seen++
+			return seen < 3
+		})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// --- Bước 6: Nến tuần/tháng không được hỗ trợ ---
+	_, err = data.MarketData.GetOHLC1WeekHistorical(symbol, "2026/03/01 00:00:00", "2026/03/27 23:59:59", 1, 100)
+	var vErr *ssisdk.ValidationError
+	if errors.As(err, &vErr) {
+		fmt.Printf("\n  Nến tuần bị từ chối (đúng như dự kiến): %v\n", vErr)
+	}
+
 	// --- Response Summary ---
 	fmt.Println("\n[Response] daily_bars|hourly_bars|paging_1min")
 	fmt.Printf("%d|%d|%d\n", len(daily), len(hourly), totalBars)
@@ -197,7 +235,17 @@ func saveToken(token *auth.Token) {
 	fmt.Printf("Token đã lưu vào %s\n", tokenCacheFile)
 }
 
-func ensureAuth(a *ssi.Auth, otp string) {
+// cleanOTP bỏ qua OTP rỗng hoặc còn là placeholder (<OTP>, YOUR_OTP_CODE) để rơi sang luồng Smart OTP / nhập tay.
+func cleanOTP(otp string) string {
+	v := strings.TrimSpace(otp)
+	if v == "" || (strings.HasPrefix(v, "<") && strings.HasSuffix(v, ">")) || strings.HasPrefix(strings.ToUpper(v), "YOUR_") {
+		return ""
+	}
+	return v
+}
+
+func ensureAuth(a *ssi.Auth, otpInput string) {
+	otp := cleanOTP(otpInput)
 	token := loadToken()
 
 	if token != nil {

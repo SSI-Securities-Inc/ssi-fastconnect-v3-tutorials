@@ -44,12 +44,12 @@ for (const order of orders.slice(-3)) {
 
 // --- Buoc 4: Cap nhat lai so du sau khi khop ---
 console.log('\n--- So du sau giao dich ---');
-const balance = await trading.portfolio.getEquityBalance(ACCOUNT_NO);
-console.log(`  Tien mat kha dung: ${vnd(balance.accountBalance).padStart(15)}`);
+const balance = await trading.portfolio.getEquityBalance(ACCOUNT_NO); // undefined neu khong co phan Equity
+console.log(`  Tien mat kha dung: ${balance ? vnd(balance.accountBalance).padStart(15) : 'N/A'}`);
 
 // --- Buoc 5: Cap nhat danh muc ---
 console.log('\n--- Vi the sau giao dich ---');
-const positions = await trading.portfolio.getEquityPositions(ACCOUNT_NO);
+const positions = (await trading.portfolio.getEquityPositions(ACCOUNT_NO)) ?? []; // undefined neu chua co vi the
 for (const pos of positions) {
   if (pos.symbol === 'SSI') {
     console.log(`  SSI | SL: ${pos.quantity} | Gia von: ${vnd(pos.costPrice)}`);
