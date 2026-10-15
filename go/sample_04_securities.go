@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/auth"
 	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/market"
@@ -150,7 +151,11 @@ func main() {
 	fmt.Printf("  Tên (EN)    : %s\n", info.SymbolNameEn)
 	fmt.Printf("  Sàn         : %s\n", board)
 	fmt.Printf("  Lot size    : %d\n", info.LotSize)
-	fmt.Printf("  ICB Code    : %s\n", info.ICBCode)
+	icbCode := "-" // ICBCode là con trỏ, nil khi server không gửi
+	if info.ICBCode != nil {
+		icbCode = *info.ICBCode
+	}
+	fmt.Printf("  ICB Code    : %s\n", icbCode)
 	fmt.Printf("  Listed Shares: %d\n", info.ListedShares)
 
 	// --- Response Summary ---
@@ -193,7 +198,17 @@ func saveToken(token *auth.Token) {
 	fmt.Printf("Token đã lưu vào %s\n", tokenCacheFile)
 }
 
-func ensureAuth(a *ssi.Auth, otp string) {
+// cleanOTP bỏ qua OTP rỗng hoặc còn là placeholder (<OTP>, YOUR_OTP_CODE) để rơi sang luồng Smart OTP / nhập tay.
+func cleanOTP(otp string) string {
+	v := strings.TrimSpace(otp)
+	if v == "" || (strings.HasPrefix(v, "<") && strings.HasSuffix(v, ">")) || strings.HasPrefix(strings.ToUpper(v), "YOUR_") {
+		return ""
+	}
+	return v
+}
+
+func ensureAuth(a *ssi.Auth, otpInput string) {
+	otp := cleanOTP(otpInput)
 	token := loadToken()
 
 	if token != nil {

@@ -79,5 +79,5 @@ if (openOrders.length === 0) {
 
 // --- Buoc 4: Cap nhat lai so du ---
 console.log('\n--- So du sau huy ---');
-const balance = await trading.portfolio.getEquityBalance(ACCOUNT_NO);
-console.log(`  Tien mat kha dung: ${vnd(balance.accountBalance).padStart(15)}`);
+const balance = await trading.portfolio.getEquityBalance(ACCOUNT_NO); // undefined neu khong co phan Equity
+console.log(`  Tien mat kha dung: ${balance ? vnd(balance.accountBalance).padStart(15) : 'N/A'}`);

@@ -12,9 +12,12 @@
  *   5. Co tin hieu + khong co lenh dang cho -> kiem tra risk -> dat lenh MARKET
  *   6. OrderStatusMessage phan hoi trang thai lenh real-time, khong polling
  *   7. Ping/pong gui keepalive dinh ky de giu ket noi WebSocket
+ *
+ * CANH BAO: sample nay TU DONG GUI LENH THAT (MARKET) khi co tin hieu. Chi chay tren tai khoan thu
+ * nghiem / khi ban hieu ro rui ro; Ctrl+C de dung.
  */
 
-import { Auth, Data, Stream, Trading, OrderSide, OrderStatus } from '@ssi.developer/ssi-sdk';
+import { Auth, Data, Stream, Trading, OrderSide, OrderStatus, Timeframe } from '@ssi.developer/ssi-sdk';
 import { config, ACCOUNT_NO, OTP } from './config.js';
 import { ensureAuth } from './auth_helper.js';
 
@@ -131,10 +134,16 @@ const builder = new BarBuilder(BAR_SECONDS);
 const data = new Data(auth);
 
 console.log(`--- Load lich su OHLC 5m (${SYMBOL}) ---`);
-const hist = await data.marketData.getOhlc5MinuteHistorical(
-  SYMBOL, '2026/01/01 00:00:00', '2026/05/12 23:59:59', 1, MA_SLOW + 5,
+// 3 ngay gan nhat (dinh dang server yyyy/MM/dd HH:mm:ss). Server tra nen moi nhat truoc nen dung
+// getOhlcAll(..., ascending = true) de co thu tu cu -> moi, roi chi giu MA_SLOW + 5 nen cuoi.
+const pad = (n) => String(n).padStart(2, '0');
+const fmtDate = (d, time) => `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${time}`;
+const from = new Date();
+from.setDate(from.getDate() - 3);
+const hist = await data.marketData.getOhlcAll(
+  SYMBOL, Timeframe.MINUTE_5, fmtDate(from, '00:00:00'), fmtDate(new Date(), '23:59:59'), 100, true,
 );
-builder.seed(hist);
+builder.seed(hist.slice(-(MA_SLOW + 5)));
 
 // ===== State dung chung giua callbacks (Node single-threaded, khong can lock) =====
 const state = {
@@ -196,9 +205,8 @@ async function onMarketData(msg) {
   }
 }
 
-/** Nhan OrderStatusMessage -> in trang thai, ghi P&L khi FILLED. */
-function onTradingEvent(msg) {
-  if (msg.type !== 'orderEvent') return;
+/** Nhan OrderStatusMessage (callback onOrder) -> in trang thai, ghi P&L khi FILLED. */
+function onOrder(msg) {
   console.log(
     `  [ORDER UPDATE] ${msg.symbol} ${msg.side} | ID=${msg.orderId} | ` +
     `Status=${msg.status} | Khop=${msg.filledQuantity}/${msg.quantity}`,
@@ -208,9 +216,8 @@ function onTradingEvent(msg) {
   state.activeOrderId = null;
 
   const filledQty = msg.filledQuantity || 0;
-  // OrderStatusMessage co field `price` (gia lenh) — khong co avgPrice rieng.
-  // Gia khop trung binh chinh xac nen lay tu getTodayOrders() -> Order.avgPrice neu can.
-  const price = msg.price;
+  // avgPrice/price co the la chuoi (vd 'MTL' voi lenh thi truong) -> ep ve so, bo qua neu khong phai so.
+  const price = Number(msg.avgPrice) || Number(msg.price);
   if (msg.status === OrderStatus.FILLED && filledQty > 0 && price) {
     const cost = filledQty * price;
     console.log(`  [FILLED] ${state.lastSignal} ${msg.symbol}: ${filledQty} CP @ ${vnd(price)} | Tong: ${vnd(cost)} VND`);
@@ -226,29 +233,29 @@ function onHeartbeat(msg) {
 // ===== Buoc 3: Ket noi WebSocket =====
 const stream = new Stream(auth);
 stream.streaming.onData = onMarketData;
-stream.streaming.onTrading = onTradingEvent;
+stream.streaming.onOrder = onOrder;
 stream.streaming.onHeartbeat = onHeartbeat;
 
 console.log('\n--- Ket noi WebSocket ---');
 await stream.streaming.connect();
 console.log('Da ket noi!\n');
 
-// Subscribe trade data de cap nhat nen
-stream.streaming.subscribeSymbol([SYMBOL]);
+// Subscribe trade data de cap nhat nen (subscribe* tra ve Promise -> await)
+await stream.streaming.subscribeSymbolTrade([SYMBOL]);
 
 // Subscribe order status de nhan ket qua lenh real-time
-stream.streaming.subscribeOrderStatus(ACCOUNT_NO);
+await stream.streaming.subscribeOrderStatus(ACCOUNT_NO);
 
-// ===== Buoc 4: Ping keepalive (SDK tu gui ping dinh ky, mac dinh 30s) =====
-stream.streaming.ping();
+// ===== Buoc 4: Ping keepalive — SDK khong tu ping, bat vong lap moi 30 giay =====
+await stream.streaming.ping(undefined, 30_000);
 
 // Ctrl+C -> dung chien luoc gon gang
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
   console.log('\nDung chien luoc.');
-  stream.disconnect();
+  await stream.disconnect();
   process.exit(0);
 });
 
 console.log(`Dang lang nghe nen ${BAR_SECONDS}s cho ${SYMBOL}... (Ctrl+C de dung)\n`);
 await stream.streaming.wait();
-stream.disconnect();
+await stream.disconnect();

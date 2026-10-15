@@ -53,7 +53,8 @@ public static class Sample08OrderStatus
                 $"Khop={latest.FilledQuantity}/{latest.Quantity} | " +
                 $"Con lai={remaining}");
 
-            if (TerminalStatuses.Contains(latest.Status))
+            // Status co the null neu server khong gui -> coi nhu chua ket thuc
+            if (latest.Status is not null && TerminalStatuses.Contains(latest.Status))
             {
                 Console.WriteLine($"\n-> Lenh da ket thuc voi trang thai: {latest.Status}");
                 if (latest.FilledQuantity > 0)

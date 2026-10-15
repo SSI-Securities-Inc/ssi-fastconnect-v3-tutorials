@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/auth"
 	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/ssi"
@@ -89,7 +90,11 @@ func main() {
 	}
 	fmt.Println("Danh sách tài khoản:")
 	for _, acc := range accounts {
-		fmt.Printf("  - %s (%s)\n", acc.AccountNo, acc.AccountType)
+		accType := "-" // AccountType là con trỏ, nil khi server không gửi
+		if acc.AccountType != nil {
+			accType = string(*acc.AccountType)
+		}
+		fmt.Printf("  - %s (%s)\n", acc.AccountNo, accType)
 	}
 
 	// --- Bước 2: Lấy số dư tài khoản Equity ---
@@ -179,7 +184,17 @@ func saveToken(token *auth.Token) {
 	fmt.Printf("Token đã lưu vào %s\n", tokenCacheFile)
 }
 
-func ensureAuth(a *ssi.Auth, otp string) {
+// cleanOTP bỏ qua OTP rỗng hoặc còn là placeholder (<OTP>, YOUR_OTP_CODE) để rơi sang luồng Smart OTP / nhập tay.
+func cleanOTP(otp string) string {
+	v := strings.TrimSpace(otp)
+	if v == "" || (strings.HasPrefix(v, "<") && strings.HasSuffix(v, ">")) || strings.HasPrefix(strings.ToUpper(v), "YOUR_") {
+		return ""
+	}
+	return v
+}
+
+func ensureAuth(a *ssi.Auth, otpInput string) {
+	otp := cleanOTP(otpInput)
 	token := loadToken()
 
 	if token != nil {

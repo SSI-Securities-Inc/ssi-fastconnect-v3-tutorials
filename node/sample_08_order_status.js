@@ -34,7 +34,7 @@ const trading = new Trading(auth);
 
 // --- Buoc 1: Dat mot lenh de theo doi ---
 console.log('Dat lenh Limit mua SSI @ 26000...');
-const result = await trading.trading.placeLimitOrder(ACCOUNT_NO, 'SSI', OrderSide.BUY, 100, 26000);
+const result = await trading.trading.placeLimitOrder(ACCOUNT_NO, 'SSI', OrderSide.BUY, 100, '26000');
 console.log('  Ket qua dat lenh:', result);
 
 // --- Buoc 2-5: Polling trang thai ---

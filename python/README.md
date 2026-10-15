@@ -1,6 +1,6 @@
 # FastConnect Python SDK Samples
 
-Bộ sample minh họa 13 kịch bản sử dụng **SSI FastConnect Python SDK** (`ssi-sdk`). Hỗ trợ cả hai phiên bản **Synchronous (đồng bộ)** và **Asynchronous (bất đồng bộ)**.
+Bộ sample minh họa 18 kịch bản sử dụng **SSI FastConnect Python SDK** (`ssi-sdk`). Hỗ trợ cả hai phiên bản **Synchronous (đồng bộ)** và **Asynchronous (bất đồng bộ)**.
 
 ## 1. Cấu hình (`config.json` / `config.py`)
 
@@ -32,6 +32,11 @@ python sample_10_websocket_data.py      # Sample 10 — WebSocket Thị trườn
 python sample_11_websocket_trading.py   # Sample 11 — WebSocket Giao dịch
 python sample_12_ma_cross_auto_trade.py # Sample 12 — Chiến thuật MA Cross
 python sample_13_fco_order.py          # Sample 13 — Lệnh điều kiện FCO
+python sample_14_batch_orders.py       # Sample 14 — Đặt/hủy nhiều lệnh (batch)
+python sample_15_positions_ppmmr.py    # Sample 15 — Vị thế T1/T2, PPMMR, max mua/bán
+python sample_16_streaming_advanced.py # Sample 16 — Streaming nâng cao
+python sample_17_trading_ws.py         # Sample 17 — Trading WebSocket (EXPERIMENTAL)
+python sample_18_error_handling.py     # Sample 18 — Xử lý lỗi
 ```
 
 ### Chạy phiên bản Bất đồng bộ (Async)
@@ -49,6 +54,11 @@ python sample_10_websocket_data_async.py
 python sample_11_websocket_trading_async.py
 python sample_12_ma_cross_auto_trade_async.py
 python sample_13_fco_order_async.py
+python sample_14_batch_orders_async.py
+python sample_15_positions_ppmmr_async.py
+python sample_16_streaming_advanced_async.py
+python sample_17_trading_ws_async.py
+python sample_18_error_handling_async.py
 ```
 
 ---
@@ -64,6 +74,20 @@ python sample_13_fco_order_async.py
 5. Cả hai phiên bản sync (`ensure_auth`) và async (`ensure_auth_async`) đều được hỗ trợ.
 
 **File:** `python/auth_helper.py`
+
+---
+
+## helpers — Tiện ích dùng chung
+**Mục tiêu:** Gom các hàm nhỏ mà mọi sample cần từ SDK 3.3.0.
+
+- `enum_value(x)`: các trường enum (`Account.account_type`, `Order.side/order_type/status`...) có thể là enum, `str` (giá trị server mới mà SDK chưa biết) hoặc `None`. Hàm này lấy chuỗi hiển thị an toàn cho cả 3 trường hợp.
+- `mask_account(account_no)`: che số tài khoản khi in, chỉ giữ 3 ký tự cuối.
+- `require_account(account_no)`: dừng ngay (fail fast) nếu `config.json` thiếu `equity_account`.
+- `confirm_real_orders(what)`: cảnh báo lệnh THẬT và bắt gõ `YES` mới chạy tiếp.
+
+`config.py` còn đọc thêm `derivative_account` (`DERIVATIVE_ACCOUNT_NO`) cho sample 15.
+
+**File:** `python/helpers.py` · `python/config.py`
 
 ---
 
@@ -278,6 +302,92 @@ python sample_13_fco_order_async.py
 **Thành phần kết nối:** Client App → Trading API (FCO Endpoints).
 
 ---
+
+## Cập nhật SDK 3.3.0 ở các sample cũ
+- **Mọi thời gian tính bằng mili-giây** (`*_ms`): `wait(timeout_ms=...)`, `ping(interval_ms=...)`, `poll_interval_ms`, `poll_max_retries`. Tên cũ báo `TypeError`.
+- **Sample 03:** thêm `get_ohlc_all` (tự phân trang) và `iter_ohlc` (đọc dần). Nến tuần/tháng KHÔNG được hỗ trợ (lỗi 400210): `get_ohlc_1week_historical` / `get_ohlc_1month_historical` raise `ValidationError` ngay phía client.
+- **Sample 05:** hiển thị `purchasing_power` (thay `purchase_power` đã deprecated; có thể `None` với tài khoản phái sinh) và KL chờ về T1/T2 mua/bán của vị thế.
+- **Sample 10/11:** `subscribe_index(["VN30"])` nhận dữ liệu CÁC MÃ THÀNH PHẦN; muốn tick của chính chỉ số dùng `subscribe_index_ticks` (`IndexTickMessage`). Thêm `OrderMatchMessage`; `PortfolioMessage` chỉ có với tài khoản phái sinh và không còn `total_asset/cash_balance/stock_value`.
+- **Sample 13:** ngày FCO tính theo hôm nay (tối đa 31 ngày), thêm `get_fco_status_history` và tham số OTP `code` tùy chọn cho lệnh/hủy FCO.
+- Các trường enum có thể là `str` hoặc `None`: dùng `helpers.enum_value`.
+
+---
+
+## Sample 14 — Đặt / Hủy Nhiều Lệnh (Batch Orders)
+**Mục tiêu:** Gửi nhiều lệnh trong MỘT request đã ký RSA và xử lý kết quả từng lệnh.
+
+**Luồng xử lý code:**
+1. Cảnh báo lệnh thật, yêu cầu gõ `YES`. Lệnh là LO MUA tại giá sàn (xa thị trường, chỉ nằm chờ).
+2. Dựng danh sách `BatchPlaceOrderItem`, mỗi lệnh có `client_request_id` (tối đa 20 ký tự) làm khóa idempotency; kiểm tra `<= Config.max_batch_orders` (mặc định 20).
+3. `place_batch_orders` → duyệt `BatchOrderResult` (`success`, `order_id`, `error_code`, `error_message`).
+4. `cancel_batch_orders` với `BatchCancelOrderItem` (mỗi item chỉ có MỘT trong `order_id` / `client_request_id`).
+5. Xử lý `ValidationError`, `DuplicateRequestError` (409), `APIError`.
+
+**File:** `python/sample_14_batch_orders.py` · `python/sample_14_batch_orders_async.py`
+
+**Thành phần kết nối:** Client App → Market Data API (giá sàn) → Trading API (batch).
+
+---
+
+## Sample 15 — Vị thế, PPMMR và Max mua/bán
+**Mục tiêu:** Đọc vị thế T1/T2, sức mua / margin (PPMMR) và khối lượng mua/bán tối đa. Chỉ đọc, không đặt lệnh.
+
+**Luồng xử lý code:**
+1. `get_equity_positions`: số lượng, bán được, `t1/t2_buy_quantity` và `t1/t2_sell_quantity` (KHỐI LƯỢNG chờ về).
+2. `get_equity_ppmmr`: `buy_t0/t1/t2`, `sell_t0/t1/t2` (SỐ TIỀN chờ thanh toán), `margin_ratio`, `purchasing_power`.
+3. Nếu có `derivative_account` trong `config.json`: `get_derivative_positions` và `get_derivative_ppmmr`.
+4. `get_max_buy_sell` và `get_max_buy_sell_at_market_price`.
+
+Lưu ý: REST chỉ trả danh sách vị thế theo mã; dòng tổng hợp (`query_summary`) chỉ có ở trading WebSocket thử nghiệm (sample 17).
+
+**File:** `python/sample_15_positions_ppmmr.py` · `python/sample_15_positions_ppmmr_async.py`
+
+---
+
+## Sample 16 — Streaming nâng cao
+**Mục tiêu:** Theo dõi kết nối và dùng các stream/callback mới của SDK 3.3.0.
+
+**Luồng xử lý code:**
+1. Gắn callback trước khi `connect`: `on_connection` (`connected` / `reconnected` / `disconnected` / `failed`), `on_data`, `on_market_flag`, `on_index_summary`, `on_order`, `on_order_match`, `on_portfolio`.
+2. Đọc `is_connected`, `reconnect_count`, `last_error`.
+3. Subscribe: `subscribe_trades` / `subscribe_quotes`, `subscribe_board`, `subscribe_index`, `subscribe_index_ticks`, `subscribe_index_summary`, `subscribe_session_flag`, `subscribe_candles` (chỉ `tick`, `1m`, `5m`) và `subscribe_orders` / `subscribe_positions` khi có tài khoản.
+4. `wait(timeout_ms=...)`, `list_subscription`, `unsubscribe_*`, `unsubscribe_all`.
+
+Callback chạy trên thread/task của SDK nên sample chỉ đếm message, không in từng message.
+
+**File:** `python/sample_16_streaming_advanced.py` · `python/sample_16_streaming_advanced_async.py`
+
+---
+
+## Sample 17 — Trading WebSocket (EXPERIMENTAL)
+**Mục tiêu:** Đặt/hủy lệnh và truy vấn qua WebSocket trading thay vì REST.
+
+**Thử nghiệm:** API nằm trong `ssi_sdk.experimental`, không thuộc facade ổn định và có thể đổi mà không báo trước. Phía server chưa được công bố là đã phát hành, chỉ chạy trên môi trường được xác nhận có hỗ trợ. Token cần scope `tradingws:*`, thiếu scope server trả 403.
+
+**Luồng xử lý code:**
+1. Cảnh báo lệnh thật, yêu cầu gõ `YES`. Kết nối `trading_ws(auth)` / `async_trading_ws(auth)`.
+2. Gắn `client.on_event`, `subscribe_order_events(account)`.
+3. `place_order` (LO MUA tại giá sàn, nhận ack `PD`) rồi `cancel_order`.
+4. `query_position(query_summary=True)` và `query_order_book`.
+5. Đọc `client.rate_limit`; bắt `TradingWSError` (`status`, `error_code`, `server_message`); luôn `close()`.
+
+**File:** `python/sample_17_trading_ws.py` · `python/sample_17_trading_ws_async.py`
+
+---
+
+## Sample 18 — Xử lý lỗi
+**Mục tiêu:** Bắt đúng loại exception và phản ứng phù hợp.
+
+**Luồng xử lý code:**
+1. Phần A (offline): cấu hình theo `*_ms`; tên cũ báo `TypeError`.
+2. Phần B (offline): hướng xử lý cho `RateLimitError` (`retry_after_ms`), `ValidationError`, `DuplicateRequestError`, `APIError` (`code` so với `ServerErrorCode.from_value`), `SmartOTPPendingError`, `SmartOTPRejectedError`, `ReauthenticationRequired`.
+3. Phần C (gọi API đọc): retry có kiểm soát theo `retry_after_ms` (chỉ request GET, không bao giờ cho đặt/hủy lệnh), bắt `ValidationError` của nến tuần.
+4. Không in `headers`, `response_body` hay cấu hình.
+
+**File:** `python/sample_18_error_handling.py` · `python/sample_18_error_handling_async.py`
+
+---
+
 - **Manual flow:** Auth (token cache) → Market Data → Account Check → Place Order → Track/Cancel → Realtime Update.
 - **Auto flow:** Auth (token cache) → OHLC/Indicator → Signal Engine → Risk Check → Auto Order → Monitor → P&L Logging.
  

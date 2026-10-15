@@ -19,6 +19,7 @@ import asyncio
 
 from ssi_sdk import AsyncAuth, AsyncTrading
 from auth_helper import ensure_auth_async
+from helpers import enum_value, mask_account
 from config import config
 
 async def main():
@@ -43,7 +44,7 @@ async def main():
             accounts = await trading.account.get_account_info()
             print(f"\nXác thực thành công! Tìm thấy {len(accounts)} tài khoản:")
             for acc in accounts:
-                print(f"  - {acc.account_no} ({acc.account_type.value})")
+                print(f"  - {mask_account(acc.account_no)} ({enum_value(acc.account_type)})")
 
 
 if __name__ == "__main__":

@@ -14,6 +14,7 @@ Luồng:
 from ssi_sdk import Auth, Trading
 from auth_helper import ensure_auth
 from ssi_sdk.enums import OrderSide
+from helpers import enum_value
 from config import config, ACCOUNT_NO, OTP
 
 with Auth(config) as auth:
@@ -54,7 +55,7 @@ with Auth(config) as auth:
         orders = trading.portfolio.get_today_orders(ACCOUNT_NO)
         for order in orders[-5:]:
             print(
-                f"  {order.order_id} | {order.symbol} {order.side.value} "
-                f"{order.order_type.value} | SL: {order.quantity} @ {order.price} "
-                f"| Trạng thái: {order.status.value}"
+                f"  {order.order_id} | {order.symbol} {enum_value(order.side)} "
+                f"{enum_value(order.order_type)} | SL: {order.quantity} @ {order.price} "
+                f"| Trạng thái: {enum_value(order.status)}"
             )

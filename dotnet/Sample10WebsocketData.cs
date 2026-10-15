@@ -35,6 +35,11 @@ public static class Sample10WebsocketData
                         $"  [ROOM]  {room.Symbol} | " +
                         $"Room con: {room.CurrentRoom}/{room.TotalRoom}");
                     break;
+                case IndexTickMessage idx:
+                    Console.WriteLine(
+                        $"  [INDEX] {idx.Symbol} | Gia tri: {idx.Value} | " +
+                        $"Thay doi: {idx.Change} ({idx.ChangePercent}%)");
+                    break;
                 default:
                     Console.WriteLine($"  [DATA]  {msg}");
                     break;
@@ -55,24 +60,26 @@ public static class Sample10WebsocketData
         Console.WriteLine("Subscribing du lieu symbol...");
         await stream.Streaming.SubscribeSymbolAsync(["SSI", "HPG", "VNM"]);
 
-        // --- Buoc 4: Subscribe du lieu theo index ---
-        Console.WriteLine("Subscribing du lieu index...");
-        await stream.Streaming.SubscribeIndexAsync(["VNINDEX", "HNX-INDEX"]);
+        // --- Buoc 4: Subscribe tick cua chinh chi so (trade.index.<ma>) ---
+        // Luu y: SubscribeIndexAsync KHONG phai tick chi so. No gui trade/quote/room.<ma>@*
+        // de lay du lieu tung ma trong ro chi so (VD VN30) -> xem Sample 16.
+        Console.WriteLine("Subscribing tick chi so...");
+        await stream.Streaming.SubscribeIndexTradeAsync(["VNINDEX", "VN30"]);
 
         // --- Buoc 5: Lang nghe lien tuc (5 phut) ---
         Console.WriteLine("\nDang lang nghe... (Ctrl+C de dung)\n");
 
-        using var cts = new CancellationTokenSource();
         Console.CancelKeyPress += (_, e) =>
         {
             e.Cancel = true;
             Console.WriteLine("\nNgat ket noi...");
-            cts.Cancel();
+            stream.Disconnect();
         };
 
         try
         {
-            await stream.WaitAsync(TimeSpan.FromMinutes(5));
+            // WaitAsync nhan so mili-giay (khong phai TimeSpan)
+            await stream.WaitAsync(5 * 60 * 1000);
         }
         catch (OperationCanceledException) { }
     }

@@ -7,7 +7,10 @@
 //   5. Trailing Stop Limit (Lệnh dừng xu hướng giới hạn)
 //   6. OCO (One-Cancels-the-Other / Lệnh Chốt lời & Cắt lỗ)
 //   7. Bull Bear (Lệnh Hai đầu)
-//   8. Truy vấn danh sách & Hủy lệnh FCO
+//   8. Truy vấn danh sách, lịch sử trạng thái & Hủy lệnh FCO
+//
+// CANH BAO: sample nay DAT 7 LENH DIEU KIEN THAT tren tai khoan trong config.json va chi huy
+// lenh GTD o buoc cuoi. Chi chay tren tai khoan thu nghiem; tu kiem tra va huy cac lenh con lai.
 
 using SsiSdk;
 
@@ -21,8 +24,11 @@ public static class Sample13FcoOrder
 
         var trading = new TradingClient(auth);
         var symbol = "SSI";
-        var fromDate = "2026/08/01 00:00:00";
-        var toDate = "2026/08/30 23:59:59";
+        // Hieu luc tu hom nay den 30 ngay sau (cua so toi da 31 ngay), dinh dang yyyy/MM/dd HH:mm:ss
+        var fromDate = DateTime.Today.ToString("yyyy/MM/dd 00:00:00");
+        var toDate = DateTime.Today.AddDays(30).ToString("yyyy/MM/dd 23:59:59");
+        // Ma OTP tuy chon (config.json "fco_code"); null thi khong gui
+        var code = SampleConfig.FcoCode;
 
         Console.WriteLine("=== FASTCONNECT .NET SDK — SAMPLE 13: LỆNH ĐIỀU KIỆN (FCO) ===\n");
 
@@ -31,43 +37,43 @@ public static class Sample13FcoOrder
             // --- 1. Lệnh GTD (Good-Till-Date) ---
             Console.WriteLine("--- 1. Đặt lệnh GTD ---");
             var gtdRes = await trading.Trading.PlaceFcoGtdAsync(
-                SampleConfig.AccountNo, symbol, OrderSide.Buy, 100, 26000, 0, fromDate, toDate);
+                SampleConfig.AccountNo, symbol, OrderSide.Buy, 100, 26000, 0, fromDate, toDate, code);
             Console.WriteLine($"  GTD Result: FcoID={gtdRes.FCOID}");
 
             // --- 2. Lệnh Stop (Stop Market) ---
             Console.WriteLine("\n--- 2. Đặt lệnh Stop ---");
             var stopRes = await trading.Trading.PlaceFcoStopAsync(
-                SampleConfig.AccountNo, symbol, OrderSide.Buy, 100, 27000, FCOOperator.GreaterOrEqual, fromDate, toDate);
+                SampleConfig.AccountNo, symbol, OrderSide.Buy, 100, 27000, FCOOperator.GreaterOrEqual, fromDate, toDate, code);
             Console.WriteLine($"  Stop Result: FcoID={stopRes.FCOID}");
 
             // --- 3. Lệnh Stop Limit ---
             Console.WriteLine("\n--- 3. Đặt lệnh Stop Limit ---");
             var stopLimitRes = await trading.Trading.PlaceFcoStopLimitAsync(
-                SampleConfig.AccountNo, symbol, OrderSide.Buy, 100, 27500, 0, 27000, FCOOperator.GreaterOrEqual, fromDate, toDate);
+                SampleConfig.AccountNo, symbol, OrderSide.Buy, 100, 27500, 0, 27000, FCOOperator.GreaterOrEqual, fromDate, toDate, code);
             Console.WriteLine($"  Stop Limit Result: FcoID={stopLimitRes.FCOID}");
 
             // --- 4. Lệnh Trailing Stop ---
             Console.WriteLine("\n--- 4. Đặt lệnh Trailing Stop ---");
             var trailingRes = await trading.Trading.PlaceFcoTrailingStopAsync(
-                SampleConfig.AccountNo, symbol, OrderSide.Sell, 100, 28000, 1000, fromDate, toDate);
+                SampleConfig.AccountNo, symbol, OrderSide.Sell, 100, 28000, 1000, fromDate, toDate, code);
             Console.WriteLine($"  Trailing Stop Result: FcoID={trailingRes.FCOID}");
 
             // --- 5. Lệnh Trailing Stop Limit ---
             Console.WriteLine("\n--- 5. Đặt lệnh Trailing Stop Limit ---");
             var trailingLimitRes = await trading.Trading.PlaceFcoTrailingStopLimitAsync(
-                SampleConfig.AccountNo, symbol, OrderSide.Sell, 100, 28000, 1000, 500, fromDate, toDate);
+                SampleConfig.AccountNo, symbol, OrderSide.Sell, 100, 28000, 1000, 500, fromDate, toDate, code);
             Console.WriteLine($"  Trailing Stop Limit Result: FcoID={trailingLimitRes.FCOID}");
 
             // --- 6. Lệnh OCO (One-Cancels-the-Other) ---
             Console.WriteLine("\n--- 6. Đặt lệnh OCO ---");
             var ocoRes = await trading.Trading.PlaceFcoOcoAsync(
-                SampleConfig.AccountNo, symbol, OrderSide.Sell, 100, 30000, 24000, 30000, 24000, 0, 0, fromDate, toDate);
+                SampleConfig.AccountNo, symbol, OrderSide.Sell, 100, 30000, 24000, 30000, 24000, 0, 0, fromDate, toDate, code);
             Console.WriteLine($"  OCO Result: FcoID={ocoRes.FCOID}");
 
             // --- 7. Lệnh Bull Bear ---
             Console.WriteLine("\n--- 7. Đặt lệnh Bull Bear ---");
             var bbRes = await trading.Trading.PlaceFcoBullBearAsync(
-                SampleConfig.AccountNo, symbol, OrderSide.Buy, 100, 26000, 0, 30000, 24000, 30000, 24000, 0, 0, fromDate, toDate);
+                SampleConfig.AccountNo, symbol, OrderSide.Buy, 100, 26000, 0, 30000, 24000, 30000, 24000, 0, 0, fromDate, toDate, code);
             Console.WriteLine($"  Bull Bear Result: FcoID={bbRes.FCOID}");
 
             // --- 8. Truy vấn danh sách lệnh FCO ---

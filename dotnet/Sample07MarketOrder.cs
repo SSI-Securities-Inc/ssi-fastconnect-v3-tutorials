@@ -46,7 +46,7 @@ public static class Sample07MarketOrder
 
         // --- Buoc 5: Cap nhat danh muc ---
         Console.WriteLine("\n--- Vi the sau giao dich ---");
-        var positions = await trading.Portfolio.GetEquityPositionsAsync(SampleConfig.AccountNo);
+        var positions = await trading.Portfolio.GetEquityPositionsAsync(SampleConfig.AccountNo) ?? [];
         foreach (var pos in positions)
         {
             if (pos.Symbol == "SSI")

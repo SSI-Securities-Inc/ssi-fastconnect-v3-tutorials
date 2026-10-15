@@ -13,7 +13,7 @@
  */
 
 import { Auth, Trading } from '@ssi.developer/ssi-sdk';
-import { config } from './config.js';
+import { config, maskAccount } from './config.js';
 import { ensureAuth } from './auth_helper.js';
 
 const auth = new Auth(config);
@@ -22,16 +22,18 @@ const auth = new Auth(config);
 await ensureAuth(auth);
 const token = auth.getToken();
 console.log('\n--- Thông tin Token ---');
-console.log('Access Token :', token.accessToken ? `${token.accessToken.slice(0, 40)} ...` : 'N/A');
+// Khong in noi dung token ra log — chi in thong tin khong nhay cam.
+console.log('Access Token :', token.accessToken ? `(da an, ${token.accessToken.length} ky tu)` : 'N/A');
 console.log('Token Type   :', token.tokenType);
 console.log('Expires At   :', token.expiresAt);
-console.log('Refresh Token:', token.refreshToken ? `${token.refreshToken.slice(0, 40)} ...` : 'N/A');
+console.log('Refresh Token:', token.refreshToken ? `(da an, ${token.refreshToken.length} ky tu)` : 'N/A');
+console.log('Refresh Exp  :', token.refreshExpiresAt);
 
 // --- Bước 4: Kiểm tra token hết hạn & refresh ---
 if (!auth.tokenManager.isAuthenticated()) {
   console.log('\nToken hết hạn, đang refresh...');
   const newToken = await auth.refresh();
-  console.log('Token mới    :', newToken.accessToken.slice(0, 40), '...');
+  console.log('Token mới    :', `(da an, ${newToken.accessToken.length} ky tu)`);
 }
 
 // --- Bước 5: Xác nhận token hoạt động bằng cách gọi API ---
@@ -39,7 +41,7 @@ const trading = new Trading(auth);
 const accounts = await trading.account.getAccountInfo();
 console.log(`\nXác thực thành công! Tìm thấy ${accounts.length} tài khoản:`);
 for (const acc of accounts) {
-  console.log(`  - ${acc.accountNo} (${acc.accountType})`);
+  console.log(`  - ${maskAccount(acc.accountNo)} (${acc.accountType})`);
 }
 
 // --- Response Summary ---
@@ -47,6 +49,6 @@ console.log(`\n[Response] token_type|expires_at|account_count`);
 console.log(`${token.tokenType}|${token.expiresAt}|${accounts.length}`);
 console.log(`[Response:account] account_no|account_type`);
 for (const acc of accounts) {
-  console.log(`${acc.accountNo}|${acc.accountType}`);
+  console.log(`${maskAccount(acc.accountNo)}|${acc.accountType}`);
 }
 

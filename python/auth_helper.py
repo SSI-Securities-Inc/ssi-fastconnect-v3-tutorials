@@ -42,8 +42,19 @@ def save_token(token: Token) -> None:
     print(f"Token đã lưu vào {TOKEN_FILE}")
 
 
+def clean_otp(otp: str | None) -> str | None:
+    """Bỏ qua OTP rỗng hoặc còn là placeholder (`<OTP>`, `YOUR_OTP_CODE`) để rơi sang luồng Smart OTP / nhập tay."""
+    if otp is None:
+        return None
+    otp = otp.strip()
+    if not otp or (otp.startswith("<") and otp.endswith(">")) or otp.upper().startswith("YOUR_"):
+        return None
+    return otp
+
+
 def ensure_auth(auth, otp: str | None = None) -> None:
     """Đảm bảo auth có token hợp lệ (sync)."""
+    otp = clean_otp(otp)
     cached_token = load_token()
     if cached_token is not None:
         auth.token_manager.set_token(cached_token)
@@ -77,7 +88,7 @@ def ensure_auth(auth, otp: str | None = None) -> None:
             print(f"[Smart OTP] Transaction ID: {transaction_id}")
             print("Vui lòng mở app SSI iBoard trên điện thoại và bấm APPROVE (Xác nhận)...")
             print("SDK đang Polling chờ bạn bấm phê duyệt...")
-            auth.ensure_authenticated(transaction_id=transaction_id, poll_interval=5, poll_max_retries=6)
+            auth.ensure_authenticated(transaction_id=transaction_id, poll_interval_ms=5_000, poll_max_retries=6)
         else:
             user_otp = input("Vui lòng nhập mã OTP 6 số: ").strip()
             auth.authenticate(otp=user_otp)
@@ -89,6 +100,7 @@ def ensure_auth(auth, otp: str | None = None) -> None:
 
 async def ensure_auth_async(auth, otp: str | None = None) -> None:
     """Đảm bảo auth có token hợp lệ (async)."""
+    otp = clean_otp(otp)
     cached_token = load_token()
     if cached_token is not None:
         await auth.token_manager.set_token(cached_token)
@@ -122,7 +134,7 @@ async def ensure_auth_async(auth, otp: str | None = None) -> None:
             print(f"[Smart OTP] Transaction ID: {transaction_id}")
             print("Vui lòng mở app SSI iBoard trên điện thoại và bấm APPROVE (Xác nhận)...")
             print("SDK đang Polling chờ bạn bấm phê duyệt...")
-            await auth.ensure_authenticated(transaction_id=transaction_id, poll_interval=5, poll_max_retries=6)
+            await auth.ensure_authenticated(transaction_id=transaction_id, poll_interval_ms=5_000, poll_max_retries=6)
         else:
             user_otp = input("Vui lòng nhập mã OTP 6 số: ").strip()
             await auth.authenticate(otp=user_otp)

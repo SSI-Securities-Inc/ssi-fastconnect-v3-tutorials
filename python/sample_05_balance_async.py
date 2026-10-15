@@ -15,19 +15,20 @@ import asyncio
 
 from ssi_sdk import AsyncAuth, AsyncTrading
 from auth_helper import ensure_auth_async
+from helpers import enum_value, mask_account
 from config import config, ACCOUNT_NO, OTP
 
 
 async def main():
     async with AsyncAuth(config) as auth:
-        await ensure_auth_async(auth, otp="<OTP>")
+        await ensure_auth_async(auth, otp=OTP)
 
         async with AsyncTrading(auth) as trading:
             # --- Bước 1: Lấy danh sách tài khoản ---
             accounts = await trading.account.get_account_info()
             print("Danh sách tài khoản:")
             for acc in accounts:
-                print(f"  - {acc.account_no} ({acc.account_type.value})")
+                print(f"  - {mask_account(acc.account_no)} ({enum_value(acc.account_type)})")
 
             # --- Bước 2: Lấy song song số dư + sức mua + vị thế ---
             balance_task = trading.portfolio.get_equity_balance(ACCOUNT_NO)
@@ -38,7 +39,7 @@ async def main():
             )
 
             # --- Bước 3: Hiển thị số dư ---
-            print(f"\n--- Số dư tài khoản Equity: {ACCOUNT_NO} ---")
+            print(f"\n--- Số dư tài khoản Equity: {mask_account(ACCOUNT_NO)} ---")
             print(f"  Tiền mặt khả dụng  : {balance.account_balance:>15,.0f}")
             print(f"  Tổng nợ            : {balance.total_debt:>15,.0f}")
             print(f"  Mua T0/T1/T2       : {balance.buy_t0:>12,.0f} / {balance.buy_t1:>12,.0f} / {balance.buy_t2:>12,.0f}")
@@ -49,7 +50,7 @@ async def main():
             max_bs = await trading.trading.get_max_buy_sell(ACCOUNT_NO, "SSI", 26000)
             print(f"  Max mua : {max_bs.max_buy_quantity:>10} cổ phiếu")
             print(f"  Max bán : {max_bs.max_sell_quantity:>10} cổ phiếu")
-            print(f"  Sức mua : {max_bs.purchase_power:>15}")
+            print(f"  Sức mua : {max_bs.purchasing_power}")
 
             # --- Bước 4: Logic kiểm tra trước khi đặt lệnh ---
             desired_quantity = 100
@@ -64,11 +65,13 @@ async def main():
                 print("  → Chặn đặt lệnh.")
 
             # --- Bước 6: Xem vị thế hiện có ---
-            print(f"\n--- Vị thế cổ phiếu ({ACCOUNT_NO}) ---")
+            print(f"\n--- Vị thế cổ phiếu ({mask_account(ACCOUNT_NO)}) ---")
             for pos in positions:
                 print(
                     f"  {pos.symbol:<10} | SL: {pos.quantity:>8} | "
                     f"Bán được: {pos.sellable_quantity:>8} | Giá vốn: {pos.cost_price:>10,.0f}"
+                    f" | T1/T2 mua: {pos.t1_buy_quantity}/{pos.t2_buy_quantity} "
+                    f"| T1/T2 bán: {pos.t1_sell_quantity}/{pos.t2_sell_quantity}"
                 )
 
 

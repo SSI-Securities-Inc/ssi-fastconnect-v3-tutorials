@@ -7,8 +7,15 @@ Luồng:
  1. Client mở kết nối WebSocket bằng token hợp lệ
  2. Subscribe các stream dữ liệu theo symbol / index
  3. Server push event khi có giao dịch mới hoặc bảng giá thay đổi
- 4. Parse message theo loại (Trade / Quote / ForeignRoom)
+ 4. Parse message theo loại (Trade / Quote / ForeignRoom / IndexTick)
  5. Khi mất kết nối, chạy cơ chế reconnect exponential backoff
+
+Lưu ý SDK 3.3.0:
+ - SubscribeIndex("VNINDEX") là trade/quote/room của các mã THÀNH PHẦN rổ chỉ số
+   (topic trade.VNINDEX@*). Muốn nhận tick của chính chỉ số, dùng SubscribeIndexTrade.
+ - Interval của stream chỉ có tick / 1m / 5m (stream.IntervalTick, ...).
+ - Wait nhận timeout theo mili-giây (*int).
+ Xem thêm sample 16 cho board, index summary và sự kiện kết nối.
 */
 package main
 
@@ -17,7 +24,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
+	"strings"
 
 	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/auth"
 	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/ssi"
@@ -104,6 +111,13 @@ func main() {
 		case *stream.ForeignRoomMessage:
 			fmt.Printf("  [ROOM]  %s | BuyQty: %d | SellQty: %d\n",
 				m.Symbol, m.BuyQuantity, m.SellQuantity)
+		case *stream.IndexTickMessage:
+			// Các trường là con trỏ: nil nghĩa là server không gửi khóa đó.
+			if m.Value != nil {
+				fmt.Printf("  [INDEX] %s | Giá trị: %.2f\n", m.Symbol, *m.Value)
+			} else {
+				fmt.Printf("  [INDEX] %s | (không có giá trị)\n", m.Symbol)
+			}
 		default:
 			fmt.Printf("  [DATA]  %v\n", msg)
 		}
@@ -116,16 +130,20 @@ func main() {
 
 	// --- Bước 3: Subscribe dữ liệu theo symbol ---
 	fmt.Println("Subscribing dữ liệu symbol...")
-	s.Streaming.SubscribeSymbol([]string{"SSI", "HPG", "VNM"}, nil)
+	if err := s.Streaming.SubscribeSymbol([]string{"SSI", "HPG", "VNM"}, nil); err != nil {
+		log.Fatal(err)
+	}
 
-	// --- Bước 4: Subscribe dữ liệu theo index ---
-	fmt.Println("Subscribing dữ liệu index...")
-	s.Streaming.SubscribeIndex([]string{"VNINDEX", "HNX-INDEX"}, nil)
+	// --- Bước 4: Subscribe tick của chính chỉ số (trade.index.<mã>) ---
+	fmt.Println("Subscribing tick chỉ số...")
+	if err := s.Streaming.SubscribeIndexTrade([]string{"VNINDEX", "VN30"}, stream.IntervalTick, nil); err != nil {
+		log.Fatal(err)
+	}
 
 	// --- Bước 5: Lắng nghe liên tục ---
 	fmt.Println("\nĐang lắng nghe... (Ctrl+C để dừng)")
-	timeout := 5 * time.Minute
-	s.Wait(&timeout)
+	timeoutMs := 5 * 60 * 1000 // 5 phút, đơn vị mili-giây
+	s.Wait(&timeoutMs)
 }
 
 // ── Token cache helper ──────────────────────────────────────────────────────
@@ -163,7 +181,17 @@ func saveToken(token *auth.Token) {
 	fmt.Printf("Token đã lưu vào %s\n", tokenCacheFile)
 }
 
-func ensureAuth(a *ssi.Auth, otp string) {
+// cleanOTP bỏ qua OTP rỗng hoặc còn là placeholder (<OTP>, YOUR_OTP_CODE) để rơi sang luồng Smart OTP / nhập tay.
+func cleanOTP(otp string) string {
+	v := strings.TrimSpace(otp)
+	if v == "" || (strings.HasPrefix(v, "<") && strings.HasSuffix(v, ">")) || strings.HasPrefix(strings.ToUpper(v), "YOUR_") {
+		return ""
+	}
+	return v
+}
+
+func ensureAuth(a *ssi.Auth, otpInput string) {
+	otp := cleanOTP(otpInput)
 	token := loadToken()
 
 	if token != nil {

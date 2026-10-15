@@ -26,7 +26,8 @@ public static class Sample09CancelOrder
         Console.WriteLine("--- So lenh hom nay ---");
         var orders = await trading.Portfolio.GetTodayOrdersAsync(SampleConfig.AccountNo);
 
-        var openOrders = orders.Where(o => CancellableStatuses.Contains(o.Status)).ToList();
+        // Status co the null neu server khong gui -> bo qua lenh do
+        var openOrders = orders.Where(o => o.Status is not null && CancellableStatuses.Contains(o.Status)).ToList();
         Console.WriteLine($"Tong lenh: {orders.Count} | Lenh dang mo: {openOrders.Count}\n");
 
         if (openOrders.Count == 0)

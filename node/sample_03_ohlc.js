@@ -8,10 +8,13 @@
  *   2. API tra ve mang OHLCV theo moc thoi gian
  *   3. Chuan hoa du lieu (date/open/high/low/close/volume)
  *   4. Ho tro nhieu timeframe (1m, 1h, 1d...) intraday & historical
- *   5. Neu lich su dai thi lap theo paging
+ *   5. Neu lich su dai thi lap theo paging (hoac dung getOhlcAll/iterOhlc — SDK tu phan trang)
+ *
+ * Luu y SDK 3.3.0: chi ho tro timeframe 1m, 3m, 5m, 15m, 1h, 1d. Timeframe 1week / 1month bi server
+ * tu choi (loi 400210) nen SDK nem ValidationError ngay, khong goi mang.
  */
 
-import { Auth, Data } from '@ssi.developer/ssi-sdk';
+import { Auth, Data, Timeframe, ValidationError } from '@ssi.developer/ssi-sdk';
 import { config } from './config.js';
 import { ensureAuth } from './auth_helper.js';
 
@@ -28,10 +31,20 @@ const fmtBar = (bar) =>
   `L:${String(bar.lowPrice).padStart(10)} C:${String(bar.closePrice).padStart(10)} ` +
   `V:${String(bar.volume).padStart(12)}`;
 
+// Moc thoi gian tinh tu hom nay (dinh dang server: yyyy/MM/dd HH:mm:ss)
+const pad = (n) => String(n).padStart(2, '0');
+const fmtDate = (d, time) => `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${time}`;
+const daysAgo = (n) => {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d;
+};
+const TODAY = new Date();
+
 // --- Buoc 1: Lay OHLC ngay gan nhat ---
 console.log(`--- OHLC 1 ngay gan nhat (${SYMBOL}) ---`);
 const daily = await data.marketData.getOhlc1DayHistorical(
-  SYMBOL, '2026/03/01 00:00:00', '2026/03/27 23:59:59',
+  SYMBOL, fmtDate(daysAgo(30), '00:00:00'), fmtDate(TODAY, '23:59:59'),
 );
 for (const bar of daily.slice(0, 5)) {
   console.log(fmtBar(bar));
@@ -40,7 +53,7 @@ for (const bar of daily.slice(0, 5)) {
 // --- Buoc 2: Lay OHLC lich su theo khoang thoi gian (co paging) ---
 console.log(`\n--- OHLC 1 ngay lich su (${SYMBOL}) ---`);
 const hist = await data.marketData.getOhlc1DayHistorical(
-  SYMBOL, '2026/01/01 00:00:00', '2026/03/27 23:59:59', 1, 20,
+  SYMBOL, fmtDate(daysAgo(90), '00:00:00'), fmtDate(TODAY, '23:59:59'), 1, 20,
 );
 for (const bar of hist) {
   console.log(fmtBar(bar));
@@ -59,7 +72,7 @@ let page = 1;
 let totalBars = 0;
 while (true) {
   const bars = await data.marketData.getOhlc1MinuteHistorical(
-    SYMBOL, '2026/03/25 09:00:00', '2026/03/25 15:00:00', page, 100,
+    SYMBOL, fmtDate(daysAgo(3), '09:00:00'), fmtDate(TODAY, '15:00:00'), page, 100,
   );
   if (bars.length === 0) break;
   totalBars += bars.length;
@@ -68,6 +81,32 @@ while (true) {
 }
 
 console.log(`\nTong cong ${totalBars} nen 1 phut duoc tai.`);
+
+// --- Buoc 5: SDK tu phan trang — getOhlcAll (mang) va iterOhlc (generator) ---
+// Endpoint khong tra tong so trang; SDK dung o trang rong/ngan. Du lieu moi nhat truoc.
+console.log(`\n--- getOhlcAll 1 gio, 5 ngay gan nhat (${SYMBOL}) ---`);
+const allHourly = await data.marketData.getOhlcAll(
+  SYMBOL, Timeframe.HOUR_1, fmtDate(daysAgo(5), '00:00:00'), fmtDate(TODAY, '23:59:59'), 100,
+);
+console.log(`  Tong ${allHourly.length} nen 1 gio`);
+
+console.log(`--- iterOhlc 1 phut: 5 nen dau (${SYMBOL}) ---`);
+let streamed = 0;
+for await (const bar of data.marketData.iterOhlc(
+  SYMBOL, Timeframe.MINUTE_1, fmtDate(daysAgo(3), '09:00:00'), fmtDate(TODAY, '15:00:00'), 100,
+)) {
+  console.log(fmtBar(bar));
+  streamed += 1;
+  if (streamed >= 5) break; // dung som: generator khong tai them trang
+}
+
+// --- Buoc 6: Timeframe 1 tuan / 1 thang khong duoc ho tro ---
+try {
+  await data.marketData.getOhlc1WeekHistorical(SYMBOL, fmtDate(daysAgo(90), '00:00:00'), fmtDate(TODAY, '23:59:59'));
+} catch (err) {
+  if (!(err instanceof ValidationError)) throw err;
+  console.log(`\n[OK] 1week bi tu choi nhu mong doi: ${err.message}`);
+}
 
 // --- Response Summary ---
 console.log(`\n[Response] daily_bars|hourly_bars|paging_1min`);

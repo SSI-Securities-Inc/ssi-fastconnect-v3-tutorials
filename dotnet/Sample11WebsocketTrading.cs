@@ -25,10 +25,16 @@ public static class Sample11WebsocketTrading
                         $"OrderID: {order.OrderId} | Status: {order.Status} | " +
                         $"Khop: {order.FilledQuantity}/{order.Quantity}");
                     break;
-                case PortfolioMessage portfolio:
+                case OrderMatchMessage match:
                     Console.WriteLine(
-                        $"  [PORTFOLIO] Account: {portfolio.AccountNo} | " +
-                        $"Tong TS: {portfolio.TotalAsset} | Cash: {portfolio.CashBalance}");
+                        $"  [MATCH] {match.Symbol} {match.Side} | " +
+                        $"{match.MatchQty} @ {match.MatchPrice:N0} | OrderID: {match.OrderId}");
+                    break;
+                case PortfolioMessage portfolio:
+                    // Chi danh cho tai khoan phai sinh: server gui vi the, khong gui TotalAsset/CashBalance/StockValue
+                    Console.WriteLine(
+                        $"  [PORTFOLIO] {portfolio.Symbol} | Long: {portfolio.LongQty} | " +
+                        $"Short: {portfolio.ShortQty} | Net: {portfolio.Net} | PL: {portfolio.FloatingPL}");
                     break;
                 default:
                     Console.WriteLine($"  [TRADING] {msg}");
@@ -62,7 +68,8 @@ public static class Sample11WebsocketTrading
 
         try
         {
-            await stream.WaitAsync(TimeSpan.FromMinutes(5));
+            // WaitAsync nhan so mili-giay (khong phai TimeSpan)
+            await stream.WaitAsync(5 * 60 * 1000);
         }
         catch (OperationCanceledException) { }
     }

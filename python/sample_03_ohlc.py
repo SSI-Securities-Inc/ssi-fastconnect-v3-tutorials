@@ -12,6 +12,8 @@ Luồng:
 """
 
 from ssi_sdk import Auth, Data
+from ssi_sdk.enums import Timeframe
+from ssi_sdk.exceptions import ValidationError
 from auth_helper import ensure_auth
 from config import config
 
@@ -80,3 +82,32 @@ with Auth(config) as auth:
             page += 1
 
         print(f"\nTổng cộng {total_bars} nến 1 phút được tải.")
+
+        # --- Bước 5: Lấy TOÀN BỘ nến trong khoảng (SDK 3.3.0: get_ohlc_all / iter_ohlc) ---
+        # Không cần tự viết vòng lặp paging như Bước 4. Timeframe hỗ trợ: 1d, 1m, 3m, 5m, 15m, 1h.
+        print(f"\n--- get_ohlc_all / iter_ohlc ({SYMBOL}) ---")
+        all_bars = data.market_data.get_ohlc_all(
+            SYMBOL, Timeframe.DAY_1,
+            from_date="2026/01/01 00:00:00", to_date="2026/03/27 23:59:59",
+            ascending=True,  # server trả newest first; ascending=True đảo lại cũ -> mới
+        )
+        print(f"  get_ohlc_all 1 ngày: {len(all_bars)} nến")
+        # iter_ohlc (generator): duyệt từng nến, tự phân trang, newest first
+        count = sum(
+            1
+            for _ in data.market_data.iter_ohlc(
+                SYMBOL, Timeframe.MINUTE_5,
+                from_date="2026/03/25 09:00:00", to_date="2026/03/25 15:00:00", size=100,
+            )
+        )
+        print(f"  iter_ohlc 5 phút: {count} nến")
+
+        # Lưu ý: nến tuần (1w) và tháng (1M) KHÔNG được server hỗ trợ (lỗi 400210).
+        # Từ SDK 3.3.0 get_ohlc_1week_historical / get_ohlc_1month_historical raise ValidationError
+        # ngay phía client, không gửi request. Hãy tự gộp nến ngày thành tuần/tháng nếu cần.
+        try:
+            data.market_data.get_ohlc_1week_historical(
+                SYMBOL, from_date="2026/01/01 00:00:00", to_date="2026/03/27 23:59:59"
+            )
+        except ValidationError as e:
+            print(f"  1 tuần không hỗ trợ: {e}")

@@ -17,6 +17,7 @@ Luồng:
 
 from ssi_sdk import Auth, Trading
 from auth_helper import ensure_auth
+from helpers import enum_value, mask_account
 from config import config
 
 with Auth(config) as auth:
@@ -40,5 +41,5 @@ with Auth(config) as auth:
         accounts = trading.account.get_account_info()
         print(f"\nXác thực thành công! Tìm thấy {len(accounts)} tài khoản:")
         for acc in accounts:
-            print(f"  - {acc.account_no} ({acc.account_type.value})")
+            print(f"  - {mask_account(acc.account_no)} ({enum_value(acc.account_type)})")
 

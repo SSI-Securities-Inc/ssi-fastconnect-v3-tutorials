@@ -18,11 +18,11 @@ public static class Sample05Balance
         Console.WriteLine("Danh sach tai khoan:");
         foreach (var acc in accounts)
         {
-            Console.WriteLine($"  - {acc.AccountNo} ({acc.AccountType})");
+            Console.WriteLine($"  - {SampleConfig.MaskAccount(acc.AccountNo)} ({acc.AccountType})");
         }
 
         // --- Buoc 2: Lay so du tai khoan Equity ---
-        Console.WriteLine($"\n--- So du tai khoan Equity: {SampleConfig.AccountNo} ---");
+        Console.WriteLine($"\n--- So du tai khoan Equity: {SampleConfig.MaskAccount(SampleConfig.AccountNo)} ---");
         var balance = await trading.Portfolio.GetEquityBalanceAsync(SampleConfig.AccountNo);
         if (balance is not null)
         {
@@ -37,11 +37,12 @@ public static class Sample05Balance
         var maxBs = await trading.Trading.GetMaxBuySellAsync(SampleConfig.AccountNo, "SSI", 26000);
         Console.WriteLine($"  Max mua : {maxBs.MaxBuyQuantity,10} co phieu");
         Console.WriteLine($"  Max ban : {maxBs.MaxSellQuantity,10} co phieu");
-        Console.WriteLine($"  Suc mua : {maxBs.PurchasePower,15}");
+        Console.WriteLine($"  Suc mua : {maxBs.PurchasingPower,15:N0}");
 
         // --- Buoc 4: Logic kiem tra truoc khi dat lenh ---
+        // Tien luon la decimal (khong dung double) de khong sai so
         var desiredQuantity = 100;
-        var desiredPrice = 26000.0;
+        var desiredPrice = 26000m;
         var requiredAmount = desiredQuantity * desiredPrice;
 
         if (balance is not null && balance.AccountBalance >= requiredAmount)
@@ -56,13 +57,15 @@ public static class Sample05Balance
         }
 
         // --- Buoc 5: Xem vi the hien co ---
-        Console.WriteLine($"\n--- Vi the co phieu ({SampleConfig.AccountNo}) ---");
-        var positions = await trading.Portfolio.GetEquityPositionsAsync(SampleConfig.AccountNo);
+        Console.WriteLine($"\n--- Vi the co phieu ({SampleConfig.MaskAccount(SampleConfig.AccountNo)}) ---");
+        // Tai khoan chua co vi the thi SDK tra ve null (khac voi danh sach rong)
+        var positions = await trading.Portfolio.GetEquityPositionsAsync(SampleConfig.AccountNo) ?? [];
         foreach (var pos in positions)
         {
             Console.WriteLine(
                 $"  {pos.Symbol,-10} | SL: {pos.Quantity,8} | " +
-                $"Ban duoc: {pos.SellableQuantity,8} | Gia von: {pos.CostPrice,10:N0}");
+                $"Ban duoc: {pos.SellableQuantity,8} | Gia von: {pos.CostPrice,10:N0} | " +
+                $"Cho ve T1/T2: mua {pos.T1BuyQuantity}/{pos.T2BuyQuantity}, ban {pos.T1SellQuantity}/{pos.T2SellQuantity}");
         }
 
         // --- Response Summary ---

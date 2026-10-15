@@ -9,6 +9,9 @@
  *   3. Server push event khi co giao dich moi hoac bang gia thay doi
  *   4. Parse message theo loai (trade / quote / room)
  *   5. Ping dinh ky giu ket noi; Ctrl+C de dung
+ *
+ * Luu y SDK 3.3.0: cac ham subscribe, unsubscribe, disconnect deu tra ve Promise -> phai `await`.
+ * Xem sample_16 cho board/index/onConnection/listSubscription.
  */
 
 import { Auth, Stream } from '@ssi.developer/ssi-sdk';
@@ -17,7 +20,10 @@ import { ensureAuth } from './auth_helper.js';
 
 // --- Callback xu ly du lieu thi truong ---
 function onMarketData(msg) {
-  if (msg.type === 'trade') {
+  if (msg.type === 'trade' && msg.value !== undefined) {
+    // Tick cua chinh chi so (trade.index.<ma>) co truong `value`
+    console.log(`  [INDEX] ${msg.symbol} | Diem: ${msg.value} | Thay doi: ${msg.change} (${msg.changePercent}%)`);
+  } else if (msg.type === 'trade') {
     console.log(`  [TRADE] ${msg.symbol} | Gia: ${msg.price} | KL: ${msg.quantity} | Side: ${msg.side}`);
   } else if (msg.type === 'quote') {
     console.log(
@@ -49,30 +55,29 @@ console.log('Dang ket noi WebSocket...');
 await stream.streaming.connect();
 console.log('Da ket noi!\n');
 
-// --- Buoc 3: Subscribe du lieu theo symbol ---
+// --- Buoc 3: Subscribe du lieu theo symbol (trade + quote + room) ---
 console.log('Subscribing du lieu symbol...');
-stream.streaming.subscribeSymbol(["41i1g8000"]);
+await stream.streaming.subscribeSymbol(['SSI', 'VNM']);
 
-// --- Buoc 4: Subscribe du lieu theo index ---
-console.log('Subscribing du lieu index...');
-stream.streaming.subscribeIndex(['VNINDEX', 'HNX-INDEX']);
+// --- Buoc 4: Subscribe tick cua chinh cac chi so ---
+// subscribeIndex() la co phieu THANH PHAN cua ro chi so (trade.VN30@*), con subscribeIndexTrade()
+// moi la tick cua chi so. Ma chi so viet lien (HNXINDEX), khong dung dau gach ngang.
+console.log('Subscribing tick chi so...');
+await stream.streaming.subscribeIndexTrade(['VNINDEX', 'HNXINDEX']);
 
-// Ping keepalive (mac dinh 30s)
-stream.streaming.ping();
+// --- Buoc 5: Ping keepalive — SDK KHONG tu ping, can bat vong lap (moi 30 giay) ---
+await stream.streaming.ping(undefined, 30_000);
 
 // Ctrl+C -> dong ket noi gon gang
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
   console.log('\nNgat ket noi...');
-  stream.disconnect();
+  await stream.disconnect();
   process.exit(0);
 });
 
-// --- Buoc 5: Lang nghe lien tuc (tu dung sau 5 phut) ---
+// --- Buoc 6: Lang nghe lien tuc (tu dung sau 5 phut) ---
 console.log('\nDang lang nghe... (Ctrl+C de dung)\n');
 const TIMEOUT_MS = 300_000; // 5 phut
-await Promise.race([
-  stream.streaming.wait(),
-  new Promise((resolve) => setTimeout(resolve, TIMEOUT_MS)),
-]);
-stream.disconnect();
+await stream.streaming.wait(TIMEOUT_MS);
+await stream.disconnect();
 console.log('Da dong ket noi.');
