@@ -13,7 +13,7 @@ Phân biệt dễ nhầm:
   - EquityPosition.t1/t2_buy_quantity, t1/t2_sell_quantity là KHỐI LƯỢNG (cổ phiếu) chờ về.
   - EquityPPMMR.buy_t0/t1/t2, sell_t0/t1/t2 là SỐ TIỀN (VND) mua/bán chờ thanh toán.
   - REST chỉ trả danh sách vị thế theo mã; dòng tổng hợp (query_summary) chỉ có ở trading
-    WebSocket thử nghiệm (xem sample 17).
+    WebSocket (xem sample 17).
   - MaxBuySellResponse.purchasing_power thay cho purchase_power (deprecated); với tài khoản
     phái sinh purchasing_power và margin_ratio là None (khác 0).
 """

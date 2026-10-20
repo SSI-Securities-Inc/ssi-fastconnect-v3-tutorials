@@ -21,7 +21,8 @@
     "sample:15": "node sample_15_positions_ppmmr.js",
     "sample:16": "node sample_16_streaming_advanced.js",
     "sample:17": "node sample_17_trading_ws.js",
-    "sample:18": "node sample_18_error_handling.js"
+    "sample:18": "node sample_18_error_handling.js",
+    "sample:19": "node sample_19_corporate_actions.js"
   },
   "dependencies": {
     "@ssi.developer/ssi-sdk": "file:../../sdk/ssi-sdk-node"

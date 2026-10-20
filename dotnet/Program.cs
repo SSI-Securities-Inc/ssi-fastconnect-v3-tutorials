@@ -27,5 +27,6 @@ await (sampleId switch
     "16" => Sample16StreamingAdvanced.RunAsync(),
     "17" => Sample17TradingWs.RunAsync(),
     "18" => Sample18ErrorHandling.RunAsync(),
-    _ => throw new ArgumentException($"Sample '{sampleId}' khong ton tai. Dung 01-18."),
+    "19" => Sample19CorporateActions.RunAsync(),
+    _ => throw new ArgumentException($"Sample '{sampleId}' khong ton tai. Dung 01-19."),
 });

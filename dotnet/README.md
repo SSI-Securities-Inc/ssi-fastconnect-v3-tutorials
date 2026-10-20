@@ -32,8 +32,9 @@ dotnet run -- 13    # Lệnh điều kiện FCO
 dotnet run -- 14    # Đặt/hủy nhiều lệnh (batch)
 dotnet run -- 15    # Vị thế T1/T2 & PPMMR
 dotnet run -- 16    # Streaming nâng cao
-dotnet run -- 17    # Trading WebSocket (EXPERIMENTAL)
+dotnet run -- 17    # Trading WebSocket
 dotnet run -- 18    # Xử lý lỗi
+dotnet run -- 19    # Sự kiện doanh nghiệp (corporate actions)
 ```
 
 Sample 06, 07, 09, 13, 14 đặt lệnh THẬT: chỉ chạy trên tài khoản thử nghiệm.
@@ -60,5 +61,6 @@ Khóa config tùy chọn (không bắt buộc, thiếu thì sample tương ứng
 | 14 | Sample14BatchOrders.cs | Dat/huy nhieu lenh mot lan (batch), ket qua tung lenh, idempotency theo clientRequestId |
 | 15 | Sample15PositionsPpmmr.cs | Vi the co phieu T1/T2, so du T0/T1/T2, PPMMR Equity & phai sinh (chi doc) |
 | 16 | Sample16StreamingAdvanced.cs | Streaming nang cao: OnConnection, handler theo loai, quy tac topic, ping, ListSubscription/UnsubscribeAll |
-| 17 | Sample17TradingWs.cs | Trading WebSocket (EXPERIMENTAL, SsiSdk.Experimental): query + su kien lenh, chi doc |
+| 17 | Sample17TradingWs.cs | Trading WebSocket (namespace SsiSdk): query + su kien lenh, chi doc |
 | 18 | Sample18ErrorHandling.cs | Phan loai exception, ServerErrorCode, retry theo RetryAfterMs, 409 duplicate |
+| 19 | Sample19CorporateActions.cs | Su kien doanh nghiep (co tuc, thuong, quyen mua) hom nay va khoang ngay qua khu <= 5 ngay, loc ma/ngon ngu (chi doc) |

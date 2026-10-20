@@ -63,16 +63,19 @@ go run sample_15_positions_ppmmr.go
 # Sample 16 — Streaming nâng cao (board, index, sự kiện kết nối, ListSubscription)
 go run sample_16_streaming_advanced.go
 
-# Sample 17 — Trading WebSocket (THỬ NGHIỆM / experimental, GỬI LỆNH THẬT, hỏi xác nhận YES)
+# Sample 17 — Trading WebSocket (GỬI LỆNH THẬT, hỏi xác nhận YES)
 go run sample_17_trading_ws.go
 
 # Sample 18 — Xử lý lỗi (rate limit, Smart OTP, validation, ServerErrorCode)
 go run sample_18_error_handling.go
+
+# Sample 19 — Sự kiện doanh nghiệp (cổ tức, cổ phiếu thưởng, quyền mua; chỉ đọc)
+go run sample_19_corporate_actions.go
 ```
 
 Lưu ý:
 
 - Sample 14 và 17 gửi lệnh mua thật ở giá sàn rồi hủy ngay; chỉ chạy trên tài khoản bạn được phép giao dịch. Cả hai cần `private_key` và `equity_account`.
-- Sample 17 dùng package `experimental`: API có thể đổi hoặc bị bỏ mà không báo trước, không dùng cho production.
+- Sample 17 dùng package `tradingws` (`github.com/SSI-Securities-Inc/ssi-sdk-go/v3/tradingws`).
 - Mọi thời gian trong SDK 3.3.0 tính bằng mili-giây (`*Ms`), ví dụ `Stream.Wait(&timeoutMs)`.
 - Các sample thiếu `client_id`, `api_key`, `api_secret` sẽ dừng ngay, không có giá trị mặc định.

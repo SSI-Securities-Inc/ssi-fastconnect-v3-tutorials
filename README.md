@@ -3,10 +3,10 @@
 Tài liệu hướng dẫn và mã nguồn mẫu tích hợp hệ thống giao dịch chứng khoán của SSI (Saigon Securities Incorporation) qua **SSI FastConnect API**.
 
 ### Ngôn ngữ hỗ trợ
-- [x] **Go** (bao gồm các mẫu từ Sample 01 đến 18)
-- [x] **Python** (bao gồm các mẫu từ Sample 01 đến 18, cả phiên bản đồng bộ - synchronous và bất đồng bộ - asynchronous)
-- [x] **Node.js** (bao gồm các mẫu từ Sample 01 đến 18)
-- [x] **.NET** (bao gồm các mẫu từ Sample 01 đến 18)
+- [x] **Go** (bao gồm các mẫu từ Sample 01 đến 19)
+- [x] **Python** (bao gồm các mẫu từ Sample 01 đến 19, cả phiên bản đồng bộ - synchronous và bất đồng bộ - asynchronous)
+- [x] **Node.js** (bao gồm các mẫu từ Sample 01 đến 19)
+- [x] **.NET** (bao gồm các mẫu từ Sample 01 đến 19)
 
 ## Mục lục
 - [Giới thiệu](#giới-thiệu)
@@ -65,8 +65,9 @@ Dưới đây là chi tiết các mẫu kiểm thử tương ứng theo từng n
 | **14** | Đặt/hủy lệnh hàng loạt (Batch) | `sample_14_batch_orders.go` | `sample_14_batch_orders.py`<br>`sample_14_batch_orders_async.py` | `sample_14_batch_orders.js` | `Sample14BatchOrders.cs` | Đặt và hủy nhiều lệnh trong một request (`POST`/`DELETE /order/batch`), xử lý kết quả từng lệnh, giới hạn `max_batch_orders` và idempotency key (`client_request_id`). |
 | **15** | Vị thế & sức mua (Positions, PPMMR) | `sample_15_positions_ppmmr.go` | `sample_15_positions_ppmmr.py`<br>`sample_15_positions_ppmmr_async.py` | `sample_15_positions_ppmmr.js` | `Sample15PositionsPpmmr.cs` | Truy vấn vị thế (SL bán/mua về T+1, T+2), sức mua và tỷ lệ ký quỹ PPMMR (giá trị mua/bán T0/T1/T2), sức mua/bán tối đa. |
 | **16** | WebSocket nâng cao | `sample_16_streaming_advanced.go` | `sample_16_streaming_advanced.py`<br>`sample_16_streaming_advanced_async.py` | `sample_16_streaming_advanced.js` | `Sample16StreamingAdvanced.cs` | Đăng ký theo sàn/chỉ số (board, index), sự kiện kết nối (connected/reconnected/disconnected), `list_subscription`, hủy đăng ký, sự kiện lệnh và khớp lệnh. |
-| **17** | WebSocket đặt lệnh (Experimental) | `sample_17_trading_ws.go` | `sample_17_trading_ws.py`<br>`sample_17_trading_ws_async.py` | `sample_17_trading_ws.js` | `Sample17TradingWs.cs` | Đặt/hủy lệnh và truy vấn vị thế, sổ lệnh qua Trading WebSocket (tính năng **thử nghiệm**, có thể thay đổi). |
+| **17** | WebSocket đặt lệnh | `sample_17_trading_ws.go` | `sample_17_trading_ws.py`<br>`sample_17_trading_ws_async.py` | `sample_17_trading_ws.js` | `Sample17TradingWs.cs` | Đặt/hủy lệnh và truy vấn vị thế, sổ lệnh qua Trading WebSocket. |
 | **18** | Xử lý lỗi & rate limit | `sample_18_error_handling.go` | `sample_18_error_handling.py`<br>`sample_18_error_handling_async.py` | `sample_18_error_handling.js` | `Sample18ErrorHandling.cs` | Phân loại lỗi (rate limit, phải xác thực lại, validation, trùng request, mã lỗi server), đọc `retry_after_ms`, timeout tính bằng ms, không in thông tin bí mật. |
+| **19** | Sự kiện doanh nghiệp (Corporate actions) | `sample_19_corporate_actions.go` | `sample_19_corporate_actions.py`<br>`sample_19_corporate_actions_async.py` | `sample_19_corporate_actions.js` | `Sample19CorporateActions.cs` | Xem cổ tức, cổ phiếu thưởng, quyền mua của hôm nay hoặc một khoảng ngày trong quá khứ (tối đa 5 ngày mỗi lần gọi), lọc theo mã và ngôn ngữ. Chỉ đọc dữ liệu. |
 
 ---
 
@@ -186,13 +187,17 @@ python sample_15_positions_ppmmr_async.py
 python sample_16_streaming_advanced.py
 python sample_16_streaming_advanced_async.py
 
-# Sample 17 — Trading WebSocket (Experimental)
+# Sample 17 — Trading WebSocket
 python sample_17_trading_ws.py
 python sample_17_trading_ws_async.py
 
 # Sample 18 — Xử lý lỗi & rate limit
 python sample_18_error_handling.py
 python sample_18_error_handling_async.py
+
+# Sample 19 — Sự kiện doanh nghiệp (Corporate actions)
+python sample_19_corporate_actions.py
+python sample_19_corporate_actions_async.py
 ```
 
 ### 2. .NET
@@ -215,8 +220,9 @@ dotnet run -- 13    # Sample 13 — Lệnh điều kiện FCO
 dotnet run -- 14    # Sample 14 — Đặt/hủy lệnh hàng loạt (Batch)
 dotnet run -- 15    # Sample 15 — Vị thế & sức mua (Positions, PPMMR)
 dotnet run -- 16    # Sample 16 — WebSocket nâng cao
-dotnet run -- 17    # Sample 17 — Trading WebSocket (Experimental)
+dotnet run -- 17    # Sample 17 — Trading WebSocket
 dotnet run -- 18    # Sample 18 — Xử lý lỗi & rate limit
+dotnet run -- 19    # Sample 19 — Sự kiện doanh nghiệp (Corporate actions)
 ```
 
 ### 3. Node.js
@@ -240,8 +246,9 @@ npm run sample:13   # Sample 13 — Lệnh điều kiện FCO
 npm run sample:14   # Sample 14 — Đặt/hủy lệnh hàng loạt (Batch)
 npm run sample:15   # Sample 15 — Vị thế & sức mua (Positions, PPMMR)
 npm run sample:16   # Sample 16 — WebSocket nâng cao
-npm run sample:17   # Sample 17 — Trading WebSocket (Experimental)
+npm run sample:17   # Sample 17 — Trading WebSocket
 npm run sample:18   # Sample 18 — Xử lý lỗi & rate limit
+npm run sample:19   # Sample 19 — Sự kiện doanh nghiệp (Corporate actions)
 
 # Hoặc chạy trực tiếp bằng Node:
 node sample_01_auth.js
@@ -267,8 +274,9 @@ go run sample_13_fco_order.go          # Sample 13 — Lệnh điều kiện FCO
 go run sample_14_batch_orders.go        # Sample 14 — Đặt/hủy lệnh hàng loạt (Batch)
 go run sample_15_positions_ppmmr.go     # Sample 15 — Vị thế & sức mua (Positions, PPMMR)
 go run sample_16_streaming_advanced.go  # Sample 16 — WebSocket nâng cao
-go run sample_17_trading_ws.go          # Sample 17 — Trading WebSocket (Experimental)
+go run sample_17_trading_ws.go          # Sample 17 — Trading WebSocket
 go run sample_18_error_handling.go      # Sample 18 — Xử lý lỗi & rate limit
+go run sample_19_corporate_actions.go   # Sample 19 — Sự kiện doanh nghiệp (Corporate actions)
 ```
 
 ---
@@ -293,7 +301,6 @@ Luồng xử lý tự động liên tục được kiểm soát bởi chiến th
 * **Cơ chế tái kết nối (Reconnect):** Các tệp mẫu WebSocket (`sample_10`, `sample_11`) tích hợp sẵn cơ chế Exponential Backoff để tự động thiết lập lại kết nối khi đường truyền mạng gặp sự cố ngắt quãng.
 * **Thời gian hết hạn của token:** Access Token mặc định có thời hạn sử dụng hữu hạn. Sử dụng `auth_helper` sẽ giúp mã nguồn của bạn hoạt động ổn định trong thời gian dài mà không bị gián đoạn do lỗi hết hạn phiên làm việc.
 * **SDK 3.3.0 — thời gian tính bằng mili giây:** mọi tham số thời gian của SDK đều có hậu tố `Ms`/`_ms` (ví dụ `timeout_ms=30_000`, `poll_interval_ms=5_000`). Tên cũ tính bằng giây đã bị xóa và sẽ báo lỗi.
-* **Sample 17 là tính năng thử nghiệm:** Trading WebSocket nằm trong gói `experimental` của SDK, giao diện có thể thay đổi giữa các phiên bản.
 * **Sample 14, 17 gửi lệnh thật:** các mẫu đặt lệnh dùng giá xa thị trường để lệnh nằm chờ, nhưng vẫn là lệnh thật trên tài khoản đã cấu hình. Kiểm tra kỹ mã tài khoản, mã chứng khoán, giá và khối lượng trước khi chạy.
 * **Quản lý rủi ro:** Luôn sử dụng môi trường giả lập (UAT/Sandbox) trước khi chính thức áp dụng các mã nguồn tự động hóa giao dịch trên tài khoản thật.
 

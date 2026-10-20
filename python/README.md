@@ -1,6 +1,6 @@
 # FastConnect Python SDK Samples
 
-Bộ sample minh họa 18 kịch bản sử dụng **SSI FastConnect Python SDK** (`ssi-sdk`). Hỗ trợ cả hai phiên bản **Synchronous (đồng bộ)** và **Asynchronous (bất đồng bộ)**.
+Bộ sample minh họa 19 kịch bản sử dụng **SSI FastConnect Python SDK** (`ssi-sdk`). Hỗ trợ cả hai phiên bản **Synchronous (đồng bộ)** và **Asynchronous (bất đồng bộ)**.
 
 ## 1. Cấu hình (`config.json` / `config.py`)
 
@@ -35,8 +35,9 @@ python sample_13_fco_order.py          # Sample 13 — Lệnh điều kiện FCO
 python sample_14_batch_orders.py       # Sample 14 — Đặt/hủy nhiều lệnh (batch)
 python sample_15_positions_ppmmr.py    # Sample 15 — Vị thế T1/T2, PPMMR, max mua/bán
 python sample_16_streaming_advanced.py # Sample 16 — Streaming nâng cao
-python sample_17_trading_ws.py         # Sample 17 — Trading WebSocket (EXPERIMENTAL)
+python sample_17_trading_ws.py         # Sample 17 — Trading WebSocket
 python sample_18_error_handling.py     # Sample 18 — Xử lý lỗi
+python sample_19_corporate_actions.py  # Sample 19 — Sự kiện doanh nghiệp (corporate actions)
 ```
 
 ### Chạy phiên bản Bất đồng bộ (Async)
@@ -59,6 +60,7 @@ python sample_15_positions_ppmmr_async.py
 python sample_16_streaming_advanced_async.py
 python sample_17_trading_ws_async.py
 python sample_18_error_handling_async.py
+python sample_19_corporate_actions_async.py
 ```
 
 ---
@@ -338,7 +340,7 @@ python sample_18_error_handling_async.py
 3. Nếu có `derivative_account` trong `config.json`: `get_derivative_positions` và `get_derivative_ppmmr`.
 4. `get_max_buy_sell` và `get_max_buy_sell_at_market_price`.
 
-Lưu ý: REST chỉ trả danh sách vị thế theo mã; dòng tổng hợp (`query_summary`) chỉ có ở trading WebSocket thử nghiệm (sample 17).
+Lưu ý: REST chỉ trả danh sách vị thế theo mã; dòng tổng hợp (`query_summary`) chỉ có ở trading WebSocket (sample 17).
 
 **File:** `python/sample_15_positions_ppmmr.py` · `python/sample_15_positions_ppmmr_async.py`
 
@@ -359,10 +361,10 @@ Callback chạy trên thread/task của SDK nên sample chỉ đếm message, kh
 
 ---
 
-## Sample 17 — Trading WebSocket (EXPERIMENTAL)
+## Sample 17 — Trading WebSocket
 **Mục tiêu:** Đặt/hủy lệnh và truy vấn qua WebSocket trading thay vì REST.
 
-**Thử nghiệm:** API nằm trong `ssi_sdk.experimental`, không thuộc facade ổn định và có thể đổi mà không báo trước. Phía server chưa được công bố là đã phát hành, chỉ chạy trên môi trường được xác nhận có hỗ trợ. Token cần scope `tradingws:*`, thiếu scope server trả 403.
+**Lưu ý:** `trading_ws` / `async_trading_ws` import trực tiếp từ `ssi_sdk`; `Trading`/`Stream` không tự kết nối trading WebSocket. Token cần scope `tradingws:*`, thiếu scope server trả 403.
 
 **Luồng xử lý code:**
 1. Cảnh báo lệnh thật, yêu cầu gõ `YES`. Kết nối `trading_ws(auth)` / `async_trading_ws(auth)`.
@@ -385,6 +387,21 @@ Callback chạy trên thread/task của SDK nên sample chỉ đếm message, kh
 4. Không in `headers`, `response_body` hay cấu hình.
 
 **File:** `python/sample_18_error_handling.py` · `python/sample_18_error_handling_async.py`
+
+---
+
+## Sample 19 — Sự kiện doanh nghiệp (Corporate actions)
+**Mục tiêu:** Xem cổ tức, cổ phiếu thưởng, quyền mua của các mã. Chỉ đọc dữ liệu, không đặt lệnh.
+
+**Lưu ý:** SDK tự lấy hết các trang. Mọi trường là chuỗi đúng như server gửi: ngày dạng `YYYY/MM/DD`, `ratio` không được parse, trường server để trống là `""`. Ngày truyền vào phải đúng dạng `YYYY/MM/DD`; mỗi lần gọi `get_corporate_actions_historical` chỉ được tối đa 5 ngày.
+
+**Luồng xử lý code:**
+1. `get_corporate_actions()`: sự kiện của hôm nay (theo ngày máy bạn).
+2. `get_corporate_actions_historical(from_date, to_date)`: 5 ngày gần nhất.
+3. Lọc `symbol="SSI"`, `language="en"`.
+4. Khoảng 30 ngày bị SDK từ chối bằng `ValidationError` trước khi gọi server; chia khoảng ngày thành các đoạn <= 5 ngày để lấy dài hơn.
+
+**File:** `python/sample_19_corporate_actions.py` · `python/sample_19_corporate_actions_async.py`
 
 ---
 

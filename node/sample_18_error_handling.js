@@ -30,9 +30,8 @@ import {
   Auth, Data, Timeframe,
   SSIError, APIError, AuthenticationError, RateLimitError, WebSocketError, ValidationError,
   ConfigurationError, SmartOTPPendingError, SmartOTPRejectedError, ReauthenticationRequired,
-  DuplicateRequestError, ServerErrorCode, Trading, mask, redact,
+  DuplicateRequestError, ServerErrorCode, Trading, TradingWSError, mask, redact,
 } from '@ssi.developer/ssi-sdk';
-import { TradingWSError } from '@ssi.developer/ssi-sdk/experimental';
 import { randomUUID } from 'node:crypto';
 import { config, assertConfigured } from './config.js';
 import { ensureAuth } from './auth_helper.js';
