@@ -1,15 +1,12 @@
 /**
- * Sample 17 — Trading WebSocket (THU NGHIEM / EXPERIMENTAL)
- * ===========================================================
+ * Sample 17 — Trading WebSocket
+ * ============================
  * Dat lenh, huy lenh va truy van tai khoan qua WebSocket `/ws/v3/trading` thay vi REST.
  *
- * !!! EXPERIMENTAL !!!  Phia server CHUA duoc cong bo la da phat hanh. API nay nam o
- * `@ssi.developer/ssi-sdk/experimental`, khong thuoc facade on dinh (Trading / Stream khong bao gio
- * ket noi toi no) va co the doi/bi go ma khong bao truoc. Chi chay tren moi truong ban duoc cho biet
- * co ho tro. Vi vay sample mac dinh THOAT NGAY, phai bat tuong minh:
+ * Mac dinh sample CHI DOC (ket noi, subscribe, truy van — khong gui lenh). Trading / Stream khong
+ * tu ket noi toi trading WebSocket; goi tradingWs(auth) tuong minh. De gui lenh that:
  *
- *   TRADING_WS_EXPERIMENTAL=1   bat sample (chi ket noi, subscribe, truy van — khong gui lenh)
- *   TRADING_WS_PLACE=1          them: dat 1 lenh MUA LO tai GIA SAN roi huy ngay (LENH THAT)
+ *   TRADING_WS_PLACE=1   dat 1 lenh MUA LO tai GIA SAN roi huy ngay (LENH THAT)
  *
  * Luong:
  *   1. Ket noi tradingWs(auth) (can token trading -> OTP lan dau)
@@ -25,16 +22,9 @@
  * neu mat ack, kiem tra su kien order / queryOrderBook truoc khi gui lai.
  */
 
-import { Auth, Data, OrderSide, OrderType } from '@ssi.developer/ssi-sdk';
-import { tradingWs, TradingWSError } from '@ssi.developer/ssi-sdk/experimental';
+import { Auth, Data, OrderSide, OrderType, tradingWs, TradingWSError } from '@ssi.developer/ssi-sdk';
 import { config, ACCOUNT_NO, OTP, maskAccount, assertConfigured } from './config.js';
 import { ensureAuth } from './auth_helper.js';
-
-if (process.env.TRADING_WS_EXPERIMENTAL !== '1') {
-  console.log('Sample 17 la EXPERIMENTAL (server chua cong bo phat hanh trading WebSocket).');
-  console.log('Dat TRADING_WS_EXPERIMENTAL=1 de chay. Dat them TRADING_WS_PLACE=1 de gui lenh that.');
-  process.exit(0);
-}
 
 assertConfigured({ trading: true });
 
@@ -59,13 +49,13 @@ function describeWsError(err) {
 const auth = new Auth(config);
 await ensureAuth(auth, OTP);
 
-console.log('Dang ket noi trading WebSocket (EXPERIMENTAL)...');
+console.log('Dang ket noi trading WebSocket...');
 let ws;
 try {
   ws = await tradingWs(auth); // doc Config.tradingWsUrl; timeout yeu cau mac dinh = Config.timeoutMs
 } catch (err) {
   console.log(`Khong ket noi duoc: ${describeWsError(err)}`);
-  console.log('Co the moi truong chua ho tro trading WebSocket — dung bang REST (sample_06...).');
+  console.log('Kiem tra token co scope tradingws:* va Config.tradingWsUrl; hoac dung REST (sample_06...).');
   process.exit(1);
 }
 console.log(`Da ket noi. Tai khoan: ${maskAccount(ACCOUNT_NO)}`);

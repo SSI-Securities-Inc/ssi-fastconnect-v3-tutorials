@@ -1,15 +1,14 @@
 /*
-Sample 17 — Trading WebSocket (THỬ NGHIỆM / EXPERIMENTAL)
-==========================================================
-!!! Package experimental: API có thể thay đổi hoặc bị bỏ mà không báo trước giữa các bản SDK.
-!!! Không dùng cho production. Luồng đặt lệnh chính thức vẫn là REST (sample 06, 07, 14).
+Sample 17 — Trading WebSocket
+=============================
+Đặt/hủy lệnh và truy vấn qua WebSocket trading (/ws/v3/trading) thay vì REST (sample 06, 07, 14).
 
 CẢNH BÁO: sample này GỬI LỆNH THẬT qua WebSocket (mua SSI ở giá sàn, lệnh LO nằm chờ) rồi
 hủy ngay. Chạy trên môi trường/tài khoản bạn được phép giao dịch. Sample hỏi xác nhận trước khi gửi.
 Cần private_key trong config.json: mỗi lệnh ghi (mutating) được ký RSA.
 
 Luồng:
- 1. experimental.TradingWS: mở kết nối (token lấy từ Auth, tự lấy mới mỗi lần Connect);
+ 1. tradingws.TradingWS: mở kết nối (token lấy từ Auth, tự lấy mới mỗi lần Connect);
     luôn Close khi xong
  2. SetOnEvent + SubscribeOrderEvents: nhận orderEvent / orderMatchEvent dạng frame
     {"channel","topic","data"}
@@ -37,9 +36,9 @@ import (
 
 	ssisdk "github.com/SSI-Securities-Inc/ssi-sdk-go/v3"
 	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/auth"
-	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/experimental"
 	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/ssi"
 	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/trading"
+	"github.com/SSI-Securities-Inc/ssi-sdk-go/v3/tradingws"
 )
 
 const (
@@ -48,8 +47,6 @@ const (
 )
 
 func main() {
-	fmt.Println("*** TRADING WEBSOCKET — THỬ NGHIỆM (experimental), API có thể đổi bất cứ lúc nào ***")
-
 	config, app := loadConfig()
 	mustHave("private_key", app.PrivateKey) // lệnh ghi qua WebSocket được ký RSA
 	mustHave("equity_account", app.EquityAccount)
@@ -70,10 +67,10 @@ func main() {
 
 	// --- Bước 1: Kết nối. Lỗi từ chối lúc bắt tay (thiếu scope, chữ ký sai...) trả về ở đây. ---
 	fmt.Println("\nĐang mở Trading WebSocket...")
-	ws, err := experimental.TradingWS(ctx, a,
-		experimental.WithRequestTimeoutMs(15000),
-		experimental.WithRespectRateLimit(true),
-		experimental.WithMaxRateLimitWaitMs(5000),
+	ws, err := tradingws.TradingWS(ctx, a,
+		tradingws.WithRequestTimeoutMs(15000),
+		tradingws.WithRespectRateLimit(true),
+		tradingws.WithMaxRateLimitWaitMs(5000),
 	)
 	if err != nil {
 		reportWSError("TradingWS", err)
@@ -161,10 +158,10 @@ func main() {
 }
 
 // queryOrderBook truy vấn sổ lệnh trong ngày của mã đang thử, trả về số dòng (-1 nếu không đếm được).
-func queryOrderBook(ctx context.Context, ws *experimental.Service, accountNo string) int {
+func queryOrderBook(ctx context.Context, ws *tradingws.Service, accountNo string) int {
 	fmt.Println("\n--- QueryOrderBook ---")
 	today := time.Now().Format("2006/01/02")
-	res, err := ws.QueryOrderBook(ctx, experimental.OrderBookQuery{
+	res, err := ws.QueryOrderBook(ctx, tradingws.OrderBookQuery{
 		AccountNo: accountNo,
 		FromDate:  today,
 		ToDate:    today,

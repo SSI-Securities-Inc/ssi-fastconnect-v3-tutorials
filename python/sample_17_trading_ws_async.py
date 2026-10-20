@@ -1,13 +1,10 @@
 """
-Sample 17 (Async) — Trading WebSocket (THỬ NGHIỆM / EXPERIMENTAL)
-====================================================================
+Sample 17 (Async) — Trading WebSocket
+=====================================
 Đặt/hủy lệnh và truy vấn qua WebSocket trading (/ws/v3/trading) thay vì REST.
 
-!!! EXPERIMENTAL !!!
-  - API nằm trong `ssi_sdk.experimental`, KHÔNG thuộc facade ổn định (AsyncTrading/AsyncStream) và
-    có thể đổi mà không báo trước.
-  - Phía server chưa được công bố là đã phát hành: chỉ chạy trên môi trường bạn được xác nhận
-    có hỗ trợ trading WebSocket. Nếu không, bước kết nối sẽ lỗi (TradingWSError/WebSocketError).
+Yêu cầu:
+  - AsyncTrading/AsyncStream không tự kết nối trading WebSocket, gọi async_trading_ws(auth) tường minh.
   - Token cần các scope tradingws:order:post / :delete và tradingws:position:get /
     :orderBook:get. Thiếu scope → server trả 403.
 
@@ -32,10 +29,9 @@ import asyncio
 import uuid
 from decimal import Decimal
 
-from ssi_sdk import AsyncAuth, AsyncData
+from ssi_sdk import AsyncAuth, AsyncData, TradingWSError, async_trading_ws
 from ssi_sdk.enums import OrderSide, OrderType
 from ssi_sdk.exceptions import ValidationError, WebSocketError
-from ssi_sdk.experimental import TradingWSError, async_trading_ws
 from auth_helper import ensure_auth_async
 from helpers import confirm_real_orders, enum_value, mask_account, require_account
 from config import config, ACCOUNT_NO, OTP
@@ -70,7 +66,7 @@ def show_rate_limit(ws, label: str):
 
 async def main():
     require_account(ACCOUNT_NO)
-    confirm_real_orders(f"1 lệnh LO mua {SYMBOL} qua trading WebSocket (EXPERIMENTAL)")
+    confirm_real_orders(f"1 lệnh LO mua {SYMBOL} qua trading WebSocket")
 
     async with AsyncAuth(config) as auth:
         await ensure_auth_async(auth, otp=OTP)
@@ -84,11 +80,11 @@ async def main():
         floor_price = Decimal(str(master.floor))
 
         # --- Bước 1: Kết nối ---
-        print("Đang kết nối trading WebSocket (EXPERIMENTAL)...")
+        print("Đang kết nối trading WebSocket...")
         try:
             ws = await async_trading_ws(auth)  # tùy chọn: respect_rate_limit, max_rate_limit_wait_ms...
         except (TradingWSError, WebSocketError) as e:
-            raise SystemExit(f"Không kết nối được trading WS (môi trường có hỗ trợ chưa?): {type(e).__name__}: {e}")
+            raise SystemExit(f"Không kết nối được trading WS (kiểm tra scope tradingws:* và URL trading WS): {type(e).__name__}: {e}")
 
         try:
             # --- Bước 2: Nhận sự kiện lệnh ---

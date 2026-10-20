@@ -1,6 +1,6 @@
 # FastConnect Node.js Samples
 
-Bộ sample minh họa 18 kịch bản sử dụng **FastConnect Node.js SDK** (`@ssi.developer/ssi-sdk`).
+Bộ sample minh họa 19 kịch bản sử dụng **FastConnect Node.js SDK** (`@ssi.developer/ssi-sdk`).
 
 > Node.js là async sẵn nên mỗi kịch bản chỉ có **một file** (dùng top-level `await`), không tách sync/async như Python.
 
@@ -32,8 +32,9 @@ npm run sample:13      # Sample 13 — Lệnh điều kiện FCO
 npm run sample:14      # Sample 14 — Đặt/hủy lệnh theo lô (batch)
 npm run sample:15      # Sample 15 — Vị thế & PPMMR (T0/T1/T2)
 npm run sample:16      # Sample 16 — Streaming nâng cao (board/index/kết nối)
-npm run sample:17      # Sample 17 — Trading WebSocket (EXPERIMENTAL, cần TRADING_WS_EXPERIMENTAL=1)
+npm run sample:17      # Sample 17 — Trading WebSocket (mặc định chỉ đọc; TRADING_WS_PLACE=1 để gửi lệnh thật)
 npm run sample:18      # Sample 18 — Xử lý lỗi, rate limit, timeout
+npm run sample:19      # Sample 19 — Sự kiện doanh nghiệp (corporate actions, chỉ đọc)
 
 # Hoặc chạy trực tiếp bằng Node
 node sample_01_auth.js
@@ -54,7 +55,7 @@ Tất cả sample import config từ `config.js`. File này **không chứa cred
 
 Thiếu giá trị bắt buộc thì sample dừng ngay (`assertConfigured`) thay vì gửi request với placeholder.
 Biến môi trường tùy chọn: `FCO_OTP` (mã OTP một lần cho sample 13), `STREAM_SECONDS` (sample 16),
-`BATCH_DUP_DEMO=1` (sample 14), `TRADING_WS_EXPERIMENTAL=1` / `TRADING_WS_PLACE=1` (sample 17).
+`BATCH_DUP_DEMO=1` (sample 14), `TRADING_WS_PLACE=1` (sample 17).
 
 > **Bảo mật:** không commit `config.json`, `token_cache.json` hay `shared_token.json`. Production nên đưa
 > secret/private key vào vault hoặc biến môi trường.
@@ -89,14 +90,15 @@ Biến môi trường tùy chọn: `FCO_OTP` (mã OTP một lần cho sample 13)
 | 14 | `sample_14_batch_orders.js` | Đặt/hủy lệnh theo lô, `maxBatchOrders`, kết quả từng lệnh, `clientRequestId` chống trùng | ✔ |
 | 15 | `sample_15_positions_ppmmr.js` | Vị thế (T1/T2 bán & mua), PPMMR (buy/sell T0/T1/T2, marginRatio, purchasingPower), phái sinh, mua/bán tối đa | ✔ |
 | 16 | `sample_16_streaming_advanced.js` | Board/index, tick chỉ số, `onConnection`, `listSubscription`, `unsubscribe*`, sự kiện lệnh | ✔ |
-| 17 | `sample_17_trading_ws.js` | **EXPERIMENTAL** — đặt/hủy lệnh & truy vấn qua trading WebSocket, rate limit | ✔ |
+| 17 | `sample_17_trading_ws.js` | Đặt/hủy lệnh & truy vấn qua trading WebSocket, rate limit | ✔ |
 | 18 | `sample_18_error_handling.js` | Phân loại lỗi, `RateLimitError.retryAfterMs`, `ServerErrorCode`, timeout `*Ms`, không lộ secret | – |
+| 19 | `sample_19_corporate_actions.js` | Cổ tức/thưởng/quyền mua hôm nay hoặc khoảng ngày quá khứ (`getCorporateActions`, `getCorporateActionsHistorical`, tối đa 5 ngày), lọc mã/ngôn ngữ, `ValidationError` khi khoảng ngày quá rộng | ✔ |
 
 > **Cảnh báo:** sample 06, 07, 09, 12, 13, 14 (và 17 khi bật `TRADING_WS_PLACE=1`) **gửi lệnh thật** lên
 > tài khoản trong `config.json`. Chỉ chạy trên tài khoản thử nghiệm hoặc khi hiểu rõ rủi ro.
 >
 > Các sample WebSocket (10, 11, 12, 16) cần ping định kỳ (SDK không tự ping) và tự dừng sau thời gian
-> chờ hoặc khi nhấn `Ctrl+C`. Sample 17 dùng API **experimental** (server chưa công bố phát hành), mặc định thoát ngay.
+> chờ hoặc khi nhấn `Ctrl+C`. Sample 17 mặc định chỉ đọc (kết nối, subscribe, truy vấn), chỉ gửi lệnh khi đặt `TRADING_WS_PLACE=1`.
 > Sample 03 dùng `getOhlcAll`/`iterOhlc` để lấy hết các trang; khung `1w`/`1M` không được hỗ trợ.
 
 ## API SDK dùng trong sample
@@ -107,4 +109,4 @@ Biến môi trường tùy chọn: `FCO_OTP` (mã OTP một lần cho sample 13)
 | `Data` → `marketData` | Index, OHLC, securities, master data | 02, 03, 04, 12, 14, 18 |
 | `Trading` → `account` / `trading` / `portfolio` | Tài khoản, đặt/hủy lệnh (kể cả batch), số dư, vị thế, PPMMR, sổ lệnh | 01, 05–09, 12–15, 18 |
 | `Stream` → `streaming` | WebSocket real-time | 10, 11, 12, 16 |
-| `tradingWs` (`@ssi.developer/ssi-sdk/experimental`) | Trading WebSocket (thử nghiệm) | 17 |
+| `tradingWs` (`@ssi.developer/ssi-sdk`) | Trading WebSocket | 17 |

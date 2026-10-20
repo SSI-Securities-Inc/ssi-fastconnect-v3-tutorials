@@ -1,13 +1,10 @@
-// Sample 17 — Trading WebSocket (EXPERIMENTAL)
+// Sample 17 — Trading WebSocket
 // Truy van va nhan su kien lenh qua mot socket giao dich rieng (khong phai REST, khong phai StreamClient).
 //
-// CANH BAO: API nam trong namespace SsiSdk.Experimental, CHUA on dinh — ten, tham so va hanh vi co the
-// doi o ban SDK sau, khong nam trong cam ket tuong thich. Khong dung cho production khi chua duoc
-// nguoi phu trach phe duyet. Sample nay CHI DOC (query + subscribe su kien), khong dat/huy lenh.
+// Sample nay CHI DOC (query + subscribe su kien), khong dat/huy lenh.
 // Ket noi bang token hien co, nen can xac thuc truoc.
 
 using SsiSdk;
-using SsiSdk.Experimental;
 
 public static class Sample17TradingWs
 {
@@ -28,7 +25,7 @@ public static class Sample17TradingWs
         await AuthHelper.EnsureAuthAsync(auth, SampleConfig.Otp);
 
         var account = SampleConfig.AccountNo;
-        Console.WriteLine($"[EXPERIMENTAL] Trading WS | tai khoan {SampleConfig.MaskAccount(account)}\n");
+        Console.WriteLine($"Trading WS | tai khoan {SampleConfig.MaskAccount(account)}\n");
 
         var options = new TradingWsOptions
         {
